@@ -1,0 +1,54 @@
+# ========================
+# Build
+# ========================
+target/
+out/
+build/
+
+# ========================
+# IDE
+# ========================
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+
+# Eclipse / STS
+.project
+.classpath
+.settings/
+.springBeans
+.sts4-cache
+
+# NetBeans
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+# ========================
+# Logs & Temp
+# ========================
+*.log
+logs/
+*.temp
+*.tmp
+
+# ========================
+# Environment / Secrets
+# ========================
+.env
+.env.*
+
+# ========================
+# OS files
+# ========================
+.DS_Store
+Thumbs.db
+
+# ========================
+# Misc
+# ========================
+HELP.md
