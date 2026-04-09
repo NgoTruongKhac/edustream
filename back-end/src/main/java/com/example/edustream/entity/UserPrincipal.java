@@ -20,6 +20,10 @@ public class UserPrincipal implements UserDetails, OAuth2User {
         this.user = user;
     }
 
+    public User getUser() {
+        return user;
+    }
+
     public UserPrincipal(User user, Map<String, Object> atttributes) {
         this.user = user;
         this.attributes = atttributes;

@@ -9,6 +9,7 @@ import com.example.edustream.dto.request.RegisterRequestDto;
 import com.example.edustream.dto.response.TokenResponseDto;
 import com.example.edustream.dto.response.UserResponseDto;
 import com.example.edustream.service.AuthService;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -27,7 +28,7 @@ public class AuthController {
 	private final AuthService authService;
 
 	@PostMapping("/register")
-	public ResponseEntity<?> register(@RequestBody RegisterRequestDto registerRequestDto) {
+	public ResponseEntity<?> register(@Valid @RequestBody RegisterRequestDto registerRequestDto) {
 
 		Map<String, String> response = new HashMap<>();
 
@@ -40,7 +41,7 @@ public class AuthController {
 	}
 
 	@PostMapping("/verify-register")
-	public ResponseEntity<UserResponseDto> verifyRigister(@RequestBody OtpRequestDto otpRequestDto) {
+	public ResponseEntity<UserResponseDto> verifyRegister(@RequestBody OtpRequestDto otpRequestDto) {
 
 		UserResponseDto newUser = authService.verifyRegister(otpRequestDto);
 
@@ -49,7 +50,7 @@ public class AuthController {
 	}
 
 	@PostMapping("/login")
-	public ResponseEntity<TokenResponseDto> login(@RequestBody LoginRequestDto loginRequestDto) {
+	public ResponseEntity<TokenResponseDto> login(@Valid @RequestBody LoginRequestDto loginRequestDto) {
 
 		TokenResponseDto response = authService.authenticate(loginRequestDto);
 
