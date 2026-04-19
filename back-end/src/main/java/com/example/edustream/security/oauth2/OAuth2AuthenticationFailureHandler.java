@@ -21,8 +21,8 @@ public class OAuth2AuthenticationFailureHandler extends SimpleUrlAuthenticationF
 
     private final HttpCookieOAuth2AuthorizationRequestRepository httpCookieOAuth2AuthorizationRequestRepository;
     
-    @Value("${app.fontend-domain}")
-	private String fontEndDomain;
+    @Value("${app.frontend-domain}")
+	private String frontEndDomain;
 
     @Override
     public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response,
@@ -30,7 +30,7 @@ public class OAuth2AuthenticationFailureHandler extends SimpleUrlAuthenticationF
         
         // 1. Xác định URL mục tiêu để chuyển hướng về
         // Thường là trang đăng nhập của frontend
-        String targetUrl = fontEndDomain + "/login";
+        String targetUrl = frontEndDomain + "/login";
 
         // 2. Lấy thông điệp lỗi và xây dựng URL chuyển hướng cuối cùng
         // Gửi thông điệp lỗi qua query parameter để frontend có thể xử lý

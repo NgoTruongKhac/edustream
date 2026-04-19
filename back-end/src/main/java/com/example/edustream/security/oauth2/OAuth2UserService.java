@@ -10,6 +10,7 @@ import com.example.edustream.entity.oauth2.OAuth2UserInfo;
 import com.example.edustream.entity.oauth2.OAuth2UserInfoFactory;
 import com.example.edustream.exception.OAuth2AuthenticationProcessingException;
 import com.example.edustream.repository.UserRepository;
+import com.example.edustream.util.StringUtil;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
@@ -87,7 +88,8 @@ public class OAuth2UserService extends DefaultOAuth2UserService{
 		
 		user.setAuthProvider(authProvider);
 		user.setProviderId(oauth2UserInfo.getProviderId());
-		user.setUsername(oauth2UserInfo.getUsername());
+		user.setFullName(oauth2UserInfo.getUsername());
+		user.setUsername(generateUniqueHandle(oauth2UserInfo.getUsername()));
 		user.setEmail(oauth2UserInfo.getEmail());
 		user.setAvatar(oauth2UserInfo.getAvatar());
 		user.setRole(Role.CUSTOMER);
@@ -96,6 +98,19 @@ public class OAuth2UserService extends DefaultOAuth2UserService{
 		
 		
 	}
+	private String generateUniqueHandle(String username) {
+		String baseHandle = StringUtil.toBaseHandle(username);
+		String finalHandle = baseHandle;
+		int counter = 1;
+
+		while (userRepository.existsByUsername(finalHandle)) {
+			finalHandle = baseHandle + counter;
+			counter++;
+		}
+
+		return finalHandle;
+	}
+
 	
 	private User updateExistingUser(User existingUser, OAuth2UserInfo oAuth2UserInfo) {
 		

@@ -4,7 +4,8 @@ import { login as loginApi } from "@/api/authApi";
 import Cookies from "js-cookie";
 
 interface User {
-  id: string;
+  id: number;
+  username: string;
   fullName: string;
   email: string;
   avatar: string;
@@ -41,9 +42,10 @@ export const useAuthStore = create<AuthStore>()((set, get) => ({
   login: async (email, password) => {
     try {
       const { accessToken, refreshToken } = await loginApi(email, password);
+      console.log("login");
 
-      Cookies.set("access_token", accessToken);
-      Cookies.set("refresh_token", refreshToken);
+      Cookies.set("accessToken", accessToken);
+      Cookies.set("refreshToken", refreshToken);
 
       await get().fetchCurrentUser();
     } catch (error) {
@@ -51,8 +53,8 @@ export const useAuthStore = create<AuthStore>()((set, get) => ({
     }
   },
   logout: () => {
-    Cookies.remove("access_token");
-    Cookies.remove("refresh_token");
+    Cookies.remove("accessToken");
+    Cookies.remove("refreshToken");
     set({
       user: null,
       isAuthenticated: false,
@@ -61,7 +63,7 @@ export const useAuthStore = create<AuthStore>()((set, get) => ({
   isLoading: true,
   checkAuthStatus: async () => {
     try {
-      const accessToken = Cookies.get("access_token");
+      const accessToken = Cookies.get("accessToken");
       if (accessToken) {
         // Lấy hàm fetchCurrentUser từ trong store
         await get().fetchCurrentUser();

@@ -9,6 +9,7 @@ import com.example.edustream.security.oauth2.OAuth2AuthenticationSuccessHandler;
 import com.example.edustream.security.oauth2.OAuth2UserService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -32,7 +33,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final String[] PUBLIC_ENPOINTS = { "/api/v1/auth/*", "/login", "/error", "/login-with-google" };
+    private final String[] PUBLIC_ENDPOINTS = {"/api/v1/auth/*", "/login", "/error", "/login-with-google"};
     private final UserDetailsService userDetailsService;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final CustomAuthenticationEntryPoint authenticationEntryPoint;
@@ -46,10 +47,16 @@ public class SecurityConfig {
 
         http
 
+                .cors(cors -> {
+                })
                 .csrf(csrf -> csrf.disable())
 
                 .authorizeHttpRequests(
-                        auth -> auth.requestMatchers(PUBLIC_ENPOINTS).permitAll().anyRequest().authenticated())
+                        auth ->
+                                auth.requestMatchers("/api/v1/users/me").authenticated()
+                                        .requestMatchers(HttpMethod.GET, "/api/v1/users/*").permitAll()
+                                        .requestMatchers(PUBLIC_ENDPOINTS).permitAll()
+                                        .anyRequest().authenticated())
                 .anonymous(anonymous -> anonymous.principal("anonymousUSer"))
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)

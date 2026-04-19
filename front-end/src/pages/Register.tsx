@@ -1,9 +1,46 @@
 import { useState } from "react";
-import { User, Mail, Lock, Eye, EyeOff } from "lucide-react";
+import { User, Mail, Lock } from "lucide-react";
 import logo_full from "@/assets/logo/logo_full.png";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { registerSchema } from "@/utils/validationSchema";
+import { register as signup } from "@/api/authApi";
+import { useShowModalStore } from "@/stores/useShowModal";
+
+import z from "zod";
+import { OTPModal } from "@/components/OTPModal";
+
+type LoginFormData = z.infer<typeof registerSchema>;
 
 export default function Register() {
-  const [showPassword, setShowPassword] = useState(false);
+  const showModal = useShowModalStore((state) => state.showModal);
+  const setShowModal = useShowModalStore((state) => state.setShowModal);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<LoginFormData>({
+    resolver: zodResolver(registerSchema),
+    mode: "onChange",
+  });
+
+  const onSubmit = async (data: {
+    fullName: string;
+    email: string;
+    password: string;
+  }) => {
+    try {
+      console.log("register");
+      setIsLoading(true);
+      await signup(data.fullName, data.email, data.password);
+      setIsLoading(false);
+      setShowModal(true);
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
   return (
     <div className="min-h-screen flex bg-neutral-50">
@@ -14,10 +51,10 @@ export default function Register() {
           <img src={logo_full} alt="logo" className="h-10 w-auto" />
         </div>
 
-        <div className="w-full max-w-sm mx-auto lg:mx-0 lg:pl-10 pt-10 pb-10 xl:pl-16">
+        <div className="w-full max-w-sm mx-auto lg:mx-0 pl-10 pr-10  pt-10 pb-10 border rounded-2xl">
           <h2 className="text-3xl font-bold text-neutral-900 mb-2">Đăng Ký</h2>
 
-          <form className="space-y-4">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             {/* Input Full Name */}
             <div className="form-control">
               <label className="label py-1">
@@ -30,10 +67,17 @@ export default function Register() {
                   <User className="w-5 h-5" />
                 </div>
                 <input
+                  id="fullName"
                   type="text"
+                  {...register("fullName")}
                   placeholder="Nguyễn Văn A"
                   className="input w-full pl-11 bg-neutral-50 border-neutral-200 text-neutral-800 placeholder:text-neutral-400 focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary-100 rounded-xl transition-all"
                 />
+                {errors.fullName && (
+                  <p className="text-red-500 text-sm p-0 m-0">
+                    {errors.fullName.message}
+                  </p>
+                )}
               </div>
             </div>
 
@@ -49,10 +93,17 @@ export default function Register() {
                   <Mail className="w-5 h-5" />
                 </div>
                 <input
+                  id="email"
+                  {...register("email")}
                   type="email"
                   placeholder="ví dụ: tenban@email.com"
                   className="input w-full pl-11 bg-neutral-50 border-neutral-200 text-neutral-800 placeholder:text-neutral-400 focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary-100 rounded-xl transition-all"
                 />
+                {errors.email && (
+                  <p className="text-red-500 text-sm p-0 m-0">
+                    {errors.email.message}
+                  </p>
+                )}
               </div>
             </div>
 
@@ -68,47 +119,29 @@ export default function Register() {
                   <Lock className="w-5 h-5" />
                 </div>
                 <input
-                  type={showPassword ? "text" : "password"}
+                  id="password"
+                  type="password"
+                  {...register("password")}
                   placeholder="Tạo mật khẩu mạnh"
                   className="input w-full pl-11 pr-11 bg-neutral-50 border-neutral-200 text-neutral-800 focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary-100 rounded-xl transition-all"
                 />
-                <button
-                  type="button"
-                  className="absolute inset-y-0 right-0 flex items-center pr-4 text-neutral-400 hover:text-primary transition-colors"
-                  onClick={() => setShowPassword(!showPassword)}
-                >
-                  {showPassword ? (
-                    <EyeOff className="w-5 h-5" />
-                  ) : (
-                    <Eye className="w-5 h-5" />
-                  )}
-                </button>
+                {errors.password && (
+                  <p className="text-red-500 text-sm p-0 m-0">
+                    {errors.password.message}
+                  </p>
+                )}
               </div>
             </div>
-
-            {/* Checkbox Đồng ý điều khoản */}
-            <div className="flex items-start mt-2 pt-2">
-              <label className="cursor-pointer flex gap-3">
-                <input
-                  type="checkbox"
-                  className="checkbox checkbox-sm checkbox-primary rounded mt-1"
-                />
-                <span className="label-text text-neutral-600 text-sm leading-relaxed">
-                  Tôi đồng ý với các{" "}
-                  <a href="#" className="text-primary hover:underline">
-                    Điều khoản dịch vụ
-                  </a>{" "}
-                  và{" "}
-                  <a href="#" className="text-primary hover:underline">
-                    Chính sách bảo mật
-                  </a>
-                </span>
-              </label>
-            </div>
-
             {/* Nút Đăng ký */}
-            <button className="btn w-full bg-primary text-white border-none hover:bg-primary-600 rounded-xl mt-4 text-base font-medium">
-              Tạo tài khoản
+            <button
+              type="submit"
+              className="btn w-full bg-primary text-white border-none hover:bg-primary-600 rounded-xl mt-4 text-base font-medium"
+            >
+              {isLoading ? (
+                <span className="loading loading-spinner loading-sm"></span>
+              ) : (
+                "Tạo tài khoản"
+              )}
             </button>
           </form>
 
@@ -146,6 +179,11 @@ export default function Register() {
           </p>
         </div>
       </div>
+      {showModal && (
+        <dialog className="modal modal-open">
+          <OTPModal />
+        </dialog>
+      )}
     </div>
   );
 }

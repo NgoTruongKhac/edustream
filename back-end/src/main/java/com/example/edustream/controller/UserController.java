@@ -48,7 +48,7 @@ public class UserController {
     }
 
     // PUT /api/v1/users
-    @PutMapping
+    @PatchMapping
     public ResponseEntity<UserResponseDto> updateUser(
             @AuthenticationPrincipal UserPrincipal userPrincipal,
             @RequestBody UserUpdateRequestDto userUpdateRequestDto) {

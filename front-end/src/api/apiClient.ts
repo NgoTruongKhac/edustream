@@ -2,10 +2,10 @@ import axios from "axios";
 import Cookies from "js-cookie";
 
 const SERVER_DOMAIN = import.meta.env.VITE_SERVER_DOMAIN;
-// Tạo một instance axios chính cho các API thông thường
+
 const api = axios.create({
   baseURL: `${SERVER_DOMAIN}/api/v1`,
-  withCredentials: true, // Rất quan trọng để gửi cookie (bao gồm cả httpOnly refreshToken)
+  withCredentials: true,
 });
 
 const refreshTokenApi = axios.create({
@@ -13,119 +13,96 @@ const refreshTokenApi = axios.create({
   withCredentials: true,
 });
 
-// 1. Request Interceptor: Gắn access token vào mỗi yêu cầu
+// ===== REQUEST INTERCEPTOR =====
 api.interceptors.request.use(
   (config) => {
-    const accessToken = Cookies.get("access_token");
+    const accessToken = Cookies.get("accessToken");
+
     if (accessToken) {
-      config.headers["Authorization"] = `Bearer ${accessToken}`;
+      config.headers.Authorization = `Bearer ${accessToken}`;
     }
+
     return config;
   },
   (error) => Promise.reject(error),
 );
 
-// Biến để theo dõi trạng thái làm mới token
-
+// ===== REFRESH CONTROL =====
 let isRefreshing = false;
 
-// Hàng đợi các request bị lỗi 401 trong khi đang làm mới token
-interface FailedPromise {
-  resolve: (value?: any) => void;
-  reject: (reason?: any) => void;
-}
+let failedQueue: {
+  resolve: (token: string) => void;
+  reject: (err: any) => void;
+}[] = [];
 
-let failedQueue: FailedPromise[] = [];
-
-const processQueue = (error: any, token = null) => {
-  failedQueue.forEach((prom) => {
+const processQueue = (error: any, token?: string) => {
+  failedQueue.forEach((p) => {
     if (error) {
-      prom.reject(error);
+      p.reject(error);
     } else {
-      prom.resolve(token);
+      p.resolve(token!);
     }
   });
-
   failedQueue = [];
 };
 
-// Response interceptor: Xử lý khi access token hết hạn
-
+// ===== RESPONSE INTERCEPTOR =====
 api.interceptors.response.use(
-  (response) => {
-    // Nếu request thành công, trả về response
-
-    return response;
-  },
+  (response) => response,
 
   async (error) => {
     const originalRequest = error.config;
 
-    // Kiểm tra nếu lỗi là 401 và request này chưa được thử lại
-    const isLoginOrRefreshRequest =
+    const isAuthRequest =
       originalRequest.url.includes("/auth/login") ||
       originalRequest.url.includes("/auth/refresh-token");
 
     if (
       error.response?.status === 401 &&
       !originalRequest._retry &&
-      !isLoginOrRefreshRequest
+      !isAuthRequest
     ) {
+      // ===== CASE: đang refresh =====
       if (isRefreshing) {
-        // Nếu đang trong quá trình làm mới token, thêm request vào hàng đợi
-
-        return new Promise(function (resolve, reject) {
+        return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
-        })
-
-          .then((token) => {
-            originalRequest.headers["Authorization"] = "Bearer " + token;
-
-            return axios(originalRequest);
-          })
-
-          .catch((err) => {
-            return Promise.reject(err);
-          });
+        }).then((token) => {
+          originalRequest.headers.Authorization = `Bearer ${token}`;
+          return api(originalRequest); // ✅ dùng api instance
+        });
       }
 
-      originalRequest._retry = true; // Đánh dấu là đã thử lại
-
+      // ===== CASE: bắt đầu refresh =====
+      originalRequest._retry = true;
       isRefreshing = true;
 
       try {
-        // Gọi API để làm mới token
-
         const { data } = await refreshTokenApi.post("/auth/refresh-token");
 
         const newAccessToken = data.accessToken;
 
-        console.log(`new access token: ${newAccessToken}`); // Lưu access token mới vào cookie
+        // ✅ lưu token mới
+        Cookies.set("accessToken", newAccessToken);
 
-        Cookies.set("access_token", newAccessToken); // Cập nhật header cho các request sau này
+        // ✅ xử lý queue
+        processQueue(null, newAccessToken);
 
-        api.defaults.headers.common["Authorization"] =
-          "Bearer " + newAccessToken;
-
-        originalRequest.headers["Authorization"] = "Bearer " + newAccessToken; // Thực thi lại các request trong hàng đợi với token mới
-
-        processQueue(null, newAccessToken); // Gửi lại request ban đầu đã thất bại
-
+        // ✅ retry request gốc
+        originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
         return api(originalRequest);
-      } catch (refreshError) {
-        // Nếu làm mới token thất bại (ví dụ: refresh token cũng hết hạn)
+      } catch (err) {
+        processQueue(err, undefined);
 
-        processQueue(refreshError, null); // Xóa token và chuyển hướng người dùng về trang đăng nhập
+        Cookies.remove("accessToken");
 
-        Cookies.remove("access_token");
+        // 👉 redirect login nếu cần
+        // window.location.href = "/login";
 
-        console.error("Session expired. Please login again."); // Ví dụ: window.location.href = '/login';
-
-        return Promise.reject(refreshError);
+        return Promise.reject(err);
       } finally {
         isRefreshing = false;
       }
-    } // Nếu không phải lỗi 401, trả về lỗi
+    }
 
     return Promise.reject(error);
   },

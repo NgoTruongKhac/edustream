@@ -1,6 +1,7 @@
 package com.example.edustream.service;
 
 import java.util.Random;
+import java.util.concurrent.TimeUnit;
 
 import com.example.edustream.dto.request.LoginRequestDto;
 import com.example.edustream.dto.request.OtpRequestDto;
@@ -17,8 +18,11 @@ import com.example.edustream.exception.NotMatchingRefreshTokenException;
 import com.example.edustream.mapper.UserMapper;
 import com.example.edustream.repository.UserRepository;
 import com.example.edustream.security.jwt.JwtAuthenticationService;
+import com.example.edustream.security.jwt.JwtProperties;
 import com.example.edustream.util.SendEmail;
 import com.example.edustream.util.StringUtil;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -46,6 +50,7 @@ public class AuthService {
 	private final UserDetailService userDetailService;
 
 	private static final int OTP_EXP = 5;
+	private final JwtProperties jwtProperties;
 
 	@Transactional
 	public void register(RegisterRequestDto registerRequestDto) {
@@ -74,7 +79,7 @@ public class AuthService {
 	}
 
 	@Transactional
-	public UserResponseDto verifyRegister(OtpRequestDto otpRequestDto) {
+	public TokenResponseDto verifyRegister(OtpRequestDto otpRequestDto, HttpServletResponse response) {
 
 		String sessionOtp = (String) session.getAttribute("otp");
 		Long otpExp = (Long) session.getAttribute("otp_exp");
@@ -102,9 +107,16 @@ public class AuthService {
 		newUser.setAuthProvider(AuthProvider.DEFAULT);
 
 		User userSaved = userRepository.save(newUser);
+
+		LoginRequestDto loginRequestDto = new LoginRequestDto(null,null);
+		loginRequestDto.setEmail(registerRequestDto.getEmail());
+		loginRequestDto.setPassword(registerRequestDto.getPassword());
+
+//		authenticate(loginRequestDto);
+
 		clearSession();
 
-		return userMapper.toUserResponseDto(userSaved);
+		return authenticate(loginRequestDto, response);
 	}
 
 	private String generateUniqueHandle(String username) {
@@ -120,7 +132,7 @@ public class AuthService {
 		return finalHandle;
 	}
 
-	public TokenResponseDto authenticate(LoginRequestDto loginRequestDto) {
+	public TokenResponseDto authenticate(LoginRequestDto loginRequestDto, HttpServletResponse response) {
 
 		Authentication authentication = authenticationManager.authenticate(
 				new UsernamePasswordAuthenticationToken(loginRequestDto.getEmail(), loginRequestDto.getPassword()));
@@ -130,7 +142,9 @@ public class AuthService {
 		String accessToken = jwtService.generateToken(userDetails);
 		String refreshToken = jwtService.generateRefreshToken(userDetails);
 
-		return new TokenResponseDto(accessToken, refreshToken);
+		addCookie(response, "refreshToken", refreshToken, jwtProperties.getRefreshTokenExpiration());
+
+		return new TokenResponseDto(accessToken);
 
 	}
 
@@ -146,7 +160,7 @@ public class AuthService {
 
 		String newAccessToken = jwtService.generateToken(userDetails);
 
-		return new TokenResponseDto(newAccessToken, refreshToken);
+		return new TokenResponseDto(newAccessToken);
 
 	}
 
@@ -157,6 +171,14 @@ public class AuthService {
 		session.removeAttribute("register_request");
 		session.removeAttribute("otp_exp");
 
+	}
+	private void addCookie(HttpServletResponse response, String name, String value, long maxAgeInMilliseconds) {
+		Cookie cookie = new Cookie(name, value);
+		cookie.setHttpOnly(true);
+		cookie.setPath("/"); // Path "/" có nghĩa là cookie sẽ được gửi cho mọi request trên domain
+		cookie.setMaxAge((int) TimeUnit.MILLISECONDS.toSeconds(maxAgeInMilliseconds));
+		// cookie.setSecure(true); // <-- BẮT BUỘC bật cờ này ở môi trường Production (khi dùng HTTPS)
+		response.addCookie(cookie);
 	}
 
 }

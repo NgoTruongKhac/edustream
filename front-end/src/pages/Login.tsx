@@ -1,9 +1,41 @@
-import { useState } from "react";
-import { Mail, Lock, Eye, EyeOff } from "lucide-react";
+import { Mail, Lock } from "lucide-react";
 import logo_full from "@/assets/logo/logo_full.png";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { loginSchema } from "@/utils/validationSchema";
+import { useAuthStore } from "@/stores/useAuthStore";
+import { loginWithGoogle } from "@/api/authApi";
 
+import z from "zod";
+
+type LoginFormData = z.infer<typeof loginSchema>;
 export default function Login() {
-  const [showPassword, setShowPassword] = useState(false);
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    setError,
+  } = useForm<LoginFormData>({
+    resolver: zodResolver(loginSchema),
+    mode: "onChange",
+  });
+
+  const login = useAuthStore((state) => state.login);
+
+  const onSubmit = async (data: { email: string; password: string }) => {
+    try {
+      await login(data.email, data.password);
+
+      window.location.replace("/");
+    } catch (error: any) {
+      if (error.response?.data) {
+        setError("password", {
+          type: "manual",
+          message: error.response.data.message,
+        });
+      }
+    }
+  };
 
   return (
     <div className="min-h-screen flex bg-neutral-50">
@@ -14,11 +46,11 @@ export default function Login() {
           <img src={logo_full} alt="logo" className="h-10 w-auto" />
         </div>
 
-        <div className="w-full max-w-sm mx-auto lg:mx-0 lg:pl-10 pt-10 pb-10 xl:pl-16">
+        <div className="w-full max-w-sm mx-auto lg:mx-0 pl-10 pr-10  pt-10 pb-10 border rounded-2xl">
           <h2 className="text-3xl font-bold text-neutral-900 mb-2">
             Đăng nhập
           </h2>
-          <form className="space-y-5">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
             {/* Input Email */}
             <div className="form-control">
               <label className="label py-1">
@@ -31,10 +63,17 @@ export default function Login() {
                   <Mail className="w-5 h-5" />
                 </div>
                 <input
+                  id="email"
                   type="email"
                   placeholder="ví dụ: tenban@email.com"
+                  {...register("email")}
                   className="input w-full pl-11 bg-neutral-50 border-neutral-200 text-neutral-800 placeholder:text-neutral-400 focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary-100 rounded-xl transition-all"
                 />
+                {errors.email && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {errors.email.message}
+                  </p>
+                )}
               </div>
             </div>
 
@@ -50,21 +89,17 @@ export default function Login() {
                   <Lock className="w-5 h-5" />
                 </div>
                 <input
-                  type={showPassword ? "text" : "password"}
+                  id="password"
+                  type="password"
+                  {...register("password")}
                   placeholder="••••••••"
                   className="input w-full pl-11 pr-11 bg-neutral-50 border-neutral-200 text-neutral-800 focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary-100 rounded-xl transition-all"
                 />
-                <button
-                  type="button"
-                  className="absolute inset-y-0 right-0 flex items-center pr-4 text-neutral-400 hover:text-primary transition-colors"
-                  onClick={() => setShowPassword(!showPassword)}
-                >
-                  {showPassword ? (
-                    <EyeOff className="w-5 h-5" />
-                  ) : (
-                    <Eye className="w-5 h-5" />
-                  )}
-                </button>
+                {errors.password && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {errors.password.message}
+                  </p>
+                )}
               </div>
             </div>
 
@@ -86,7 +121,10 @@ export default function Login() {
             </div>
 
             {/* Nút Submit */}
-            <button className="btn w-full bg-primary text-white border-none hover:bg-primary-600 rounded-xl mt-2 text-base font-medium">
+            <button
+              type="submit"
+              className="btn w-full bg-primary text-white border-none hover:bg-primary-600 rounded-xl mt-2 text-base font-medium"
+            >
               Đăng nhập
             </button>
           </form>
@@ -97,7 +135,10 @@ export default function Login() {
           </div>
 
           {/* Nút Đăng nhập Google */}
-          <button className="btn w-full bg-white border border-neutral-200 hover:bg-neutral-50 text-neutral-700 rounded-xl gap-3 font-medium">
+          <button
+            onClick={() => loginWithGoogle()}
+            className="btn w-full bg-white border border-neutral-200 hover:bg-neutral-50 text-neutral-700 rounded-xl gap-3 font-medium"
+          >
             <svg viewBox="0 0 24 24" className="w-5 h-5" aria-hidden="true">
               <path
                 d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"

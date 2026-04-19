@@ -1,6 +1,8 @@
 package com.example.edustream.security.oauth2;
 
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.TimeUnit;
 
 import com.example.edustream.entity.UserPrincipal;
@@ -24,8 +26,8 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 	
 	private final JwtAuthenticationService jwtService;
 	
-	@Value("${app.fontend-domain}")
-	private String fontEndDomain;
+	@Value("${app.frontend-domain}")
+	private String frontEndDomain;
 	private final JwtProperties jwtProperties;
     
 //    // Giả sử bạn định nghĩa thời gian sống của token trong application.properties
@@ -50,21 +52,25 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 		getRedirectStrategy().sendRedirect(request, response, targetUrl);
 	}
 
-	protected String determineTargetUrl(HttpServletRequest request, HttpServletResponse response, Authentication authentication) {
-        String redirectUri = fontEndDomain; // Chỉ cần redirect về trang chủ hoặc dashboard
+	protected String determineTargetUrl(HttpServletRequest request,
+										HttpServletResponse response,
+										Authentication authentication) {
 
-        UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
+		String redirectUri = frontEndDomain;
+
+		UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
 
 		String accessToken = jwtService.generateToken(userPrincipal);
 		String refreshToken = jwtService.generateRefreshToken(userPrincipal);
-		
-        // Tạo cookie cho Access Token
-        addCookie(response, "access_token", accessToken, jwtProperties.getAccessTokenExpiration());
 
-        // Tạo cookie cho Refresh Token
-        addCookie(response, "refresh_token", refreshToken, jwtProperties.getRefreshTokenExpiration());
-		
-		return redirectUri;
+		// ===== 1. Set refreshToken vào HttpOnly cookie =====
+		addCookie(response, "refreshToken", refreshToken, jwtProperties.getRefreshTokenExpiration());
+
+		// ===== 2. Encode accessToken để đưa vào URL =====
+		String encodedAccessToken = URLEncoder.encode(accessToken, StandardCharsets.UTF_8);
+
+		// ===== 3. Redirect kèm param accessToken =====
+		return redirectUri + "?accessToken=" + encodedAccessToken;
 	}
 
     /**

@@ -8,13 +8,13 @@ export const login = async (email: string, password: string) => {
 
 export const register = async (
   fullName: string,
-  password: string,
   email: string,
+  password: string,
 ) => {
   const response = await api.post("/auth/register", {
     fullName,
-    password,
     email,
+    password,
   });
   return response.data;
 };
@@ -32,5 +32,5 @@ export const logout = () => {
 export const loginWithGoogle = () => {
   window.location.href = `${
     import.meta.env.VITE_SERVER_DOMAIN
-  }/api/v1/auth/google`;
+  }/login/oauth2/google`;
 };
