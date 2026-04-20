@@ -21,6 +21,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
@@ -43,14 +44,12 @@ public class SecurityConfig {
     private final OAuth2AuthenticationFailureHandler oAuth2AuthenticationFailureHandler;
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, ClientRegistrationRepository repo) throws Exception {
 
         http
-
                 .cors(cors -> {
                 })
                 .csrf(csrf -> csrf.disable())
-
                 .authorizeHttpRequests(
                         auth ->
                                 auth.requestMatchers("/api/v1/users/me").authenticated()
@@ -60,7 +59,7 @@ public class SecurityConfig {
                 .anonymous(anonymous -> anonymous.principal("anonymousUSer"))
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-                .oauth2Login(oauth2 -> oauth2.authorizationEndpoint(enpoint -> enpoint.baseUri("/login/oauth2"))
+                .oauth2Login(oauth2 -> oauth2.authorizationEndpoint(enpoint -> enpoint.baseUri("/login/oauth2").authorizationRequestResolver(new CustomAuthorizationRequestResolver(repo)))
                         .userInfoEndpoint(user -> user.userService(oAuth2UserService))
                         .successHandler(oAuth2AuthenticationSuccessHandler)
                         .failureHandler(oAuth2AuthenticationFailureHandler))

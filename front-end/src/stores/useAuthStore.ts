@@ -7,6 +7,7 @@ interface User {
   id: number;
   username: string;
   fullName: string;
+  description: string;
   email: string;
   avatar: string;
 }

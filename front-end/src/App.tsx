@@ -11,6 +11,7 @@ import Subscription from "./pages/Subscription";
 import AuthGoogle from "./pages/AuthGoogle";
 import NotFound from "./pages/NotFound";
 import Channel from "./pages/Channel";
+import EditProfile from "./pages/EditProfile";
 
 function App() {
   const { checkAuthStatus } = useAuthStore();
@@ -27,6 +28,7 @@ function App() {
           <Route path="/subscriptions" element={<Subscription />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/:username" element={<Channel />} />
+          <Route path="/edit-profile" element={<EditProfile />} />
         </Route>
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />

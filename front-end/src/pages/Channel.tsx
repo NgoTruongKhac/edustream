@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { getUserByUsername } from "@/api/userApi";
 import VideoCard from "@/components/VideoCard";
+import { useAuthStore } from "@/stores/useAuthStore";
 
 // Mock data giả lập api getVideoByUsername
 const MOCK_VIDEOS = [
@@ -63,6 +64,8 @@ export default function Channel() {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [isValidChannel, setIsValidChannel] = useState(true);
+
+  const currentUser = useAuthStore((state) => state.user);
 
   useEffect(() => {
     const fetchUserProfile = async () => {
@@ -160,9 +163,18 @@ export default function Channel() {
             )}
 
             <div className="mt-4 flex gap-2">
-              <button className="btn bg-primary-600 text-white rounded-xl text-sm font-medium hover:bg-neutral-800 transition">
-                Đăng ký
-              </button>
+              {currentUser ? (
+                <Link
+                  to={"/edit-profile"}
+                  className="btn bg-primary-500 text-white rounded-xl text-sm font-medium hover:bg-neutral-800 transition"
+                >
+                  tuỳ chỉnh hồ sơ
+                </Link>
+              ) : (
+                <button className="btn bg-primary-500 text-white rounded-xl text-sm font-medium hover:bg-neutral-800 transition">
+                  Đăng ký
+                </button>
+              )}
             </div>
           </div>
         </div>
