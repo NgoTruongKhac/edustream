@@ -5,6 +5,7 @@ import com.example.edustream.dto.response.PageResponse;
 import com.example.edustream.dto.response.UserResponseDto;
 import com.example.edustream.entity.UserPrincipal;
 import com.example.edustream.service.UserService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
@@ -33,7 +34,7 @@ public class UserController {
 
         Page<UserResponseDto> data = userService.getAllUsers(page);
 
-        PageResponse<UserResponseDto> response=new PageResponse<>(data);
+        PageResponse<UserResponseDto> response = new PageResponse<>(data);
 
         return ResponseEntity.ok(response);
     }
@@ -49,9 +50,9 @@ public class UserController {
 
     // PUT /api/v1/users
     @PatchMapping
-    public ResponseEntity<UserResponseDto> updateUser(
-            @AuthenticationPrincipal UserPrincipal userPrincipal,
-            @RequestBody UserUpdateRequestDto userUpdateRequestDto) {
+    public ResponseEntity<UserResponseDto> updateUser(@Valid
+                                                      @AuthenticationPrincipal UserPrincipal userPrincipal,
+                                                      @RequestBody UserUpdateRequestDto userUpdateRequestDto) {
 
         UserResponseDto response = userService.updateUser(userPrincipal, userUpdateRequestDto);
         return ResponseEntity.ok(response);

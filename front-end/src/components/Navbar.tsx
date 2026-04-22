@@ -14,7 +14,7 @@ export default function Navbar({ onOpenSidebar }: NavbarProps) {
 
   const handleLogout = () => {
     logout();
-    window.location.reload();
+    window.location.href = "/";
   };
 
   return (
@@ -128,7 +128,7 @@ export default function Navbar({ onOpenSidebar }: NavbarProps) {
               <ul className="menu p-2 w-full">
                 <li>
                   <Link
-                    to="/profile"
+                    to={`@${user.username}`}
                     className="flex items-center gap-2 text-neutral-700
                      hover:text-primary hover:bg-primary-50
                      font-medium rounded-lg px-3 py-2"

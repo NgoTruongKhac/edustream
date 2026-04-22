@@ -114,7 +114,7 @@ public class OAuth2UserService extends DefaultOAuth2UserService{
 	
 	private User updateExistingUser(User existingUser, OAuth2UserInfo oAuth2UserInfo) {
 		
-		existingUser.setUsername(oAuth2UserInfo.getUsername());
+		existingUser.setFullName(oAuth2UserInfo.getUsername());
 		existingUser.setAvatar(oAuth2UserInfo.getAvatar());
 		
 		return userRepository.save(existingUser);

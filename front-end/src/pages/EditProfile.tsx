@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useAuthStore } from "@/stores/useAuthStore";
-import { Camera } from "lucide-react";
+import { Camera, ArrowLeft } from "lucide-react";
 
 export default function EditProfile() {
   const user = useAuthStore((state) => state.user);
@@ -47,6 +47,13 @@ export default function EditProfile() {
     // Ở đây bạn sẽ gọi API để cập nhật profile
     console.log("Dữ liệu cần cập nhật:", formData);
   };
+  const handleBack = () => {
+    if (window.history.length > 1) {
+      window.history.back(); // quay lại trang trước (có reload tự nhiên)
+    } else {
+      window.location.href = "/"; // fallback nếu vào trực tiếp
+    }
+  };
 
   // Hiển thị loading nếu chưa lấy được thông tin user
   if (!user) {
@@ -59,11 +66,18 @@ export default function EditProfile() {
 
   return (
     // Đặt nền chung cho toàn bộ trang
-    <div className="min-h-screen bg-base-100 p-4 sm:p-6 lg:p-10 font-sans">
+    <div className="min-h-screen bg-base-100 px-4 py-2 sm:px-6 lg:px-10 font-sans">
       <div className="container mx-auto max-w-5xl">
         {/* Tiêu đề trang - đặt ngoài phần nội dung trắng */}
-        <div className="mb-10 text-center md:text-left">
-          <h1 className="text-2xl font-extrabold text-neutral-900">
+        <button
+          onClick={handleBack}
+          className="flex items-center gap-2 px-2 py-2 hover:bg-neutral-100 rounded-xl cursor-pointer"
+        >
+          <ArrowLeft size={18} />
+          <span>trở về</span>
+        </button>
+        <div className="mb-8 mt-2 text-center md:text-left">
+          <h1 className="text-2xl font-bold text-neutral-900">
             Chỉnh sửa hồ sơ
           </h1>
         </div>
@@ -75,7 +89,8 @@ export default function EditProfile() {
             {/* Banner + Avatar */}
             <div className="flex flex-col gap-6 pb-4">
               {/* Banner */}
-              <div className="relative w-full h-44 bg-neutral-200 overflow-hidden group">
+
+              <div className="relative w-full h-40 bg-neutral-200 overflow-hidden group">
                 {bannerPreview && (
                   <img
                     src={bannerPreview}
@@ -91,7 +106,7 @@ export default function EditProfile() {
                   htmlFor="banner-upload"
                   className="absolute bottom-3 right-3 cursor-pointer
                  p-2 rounded-full bg-black/50 text-white
-                 opacity-0 group-hover:opacity-100 transition"
+                 "
                 >
                   <Camera size={18} />
                 </label>
@@ -114,8 +129,8 @@ export default function EditProfile() {
                   <label
                     htmlFor="avatar-upload"
                     className="absolute inset-0 flex items-center justify-center
-                   bg-black/40 text-white rounded-full cursor-pointer
-                   opacity-0 group-hover:opacity-100 transition"
+                   bg-black/20 text-white rounded-full cursor-pointer
+                  "
                   >
                     <Camera size={22} />
                   </label>
@@ -126,10 +141,6 @@ export default function EditProfile() {
                   <h2 className="text-2xl font-bold text-neutral-800">
                     {formData.fullName}
                   </h2>
-
-                  <span className="text-xs text-neutral-500">
-                    Định dạng hỗ trợ: JPG, PNG, GIF (Tối đa 2MB)
-                  </span>
                 </div>
               </div>
             </div>
@@ -157,7 +168,10 @@ export default function EditProfile() {
               <label className="form-control w-full">
                 <div className="label pt-0">
                   <span className="label-text font-semibold text-neutral-700">
-                    Tên đăng nhập
+                    Tên định danh
+                  </span>
+                  <span className="label-text-alt text-neutral-400 italic">
+                    (chỉ được thay đổi sau mỗi 30 ngày)
                   </span>
                 </div>
                 <input
@@ -190,7 +204,10 @@ export default function EditProfile() {
               <label className="form-control w-full">
                 <div className="label pt-0">
                   <span className="label-text font-semibold text-neutral-700">
-                    Phương thức đăng nhập (Provider)
+                    Phương thức đăng nhập
+                  </span>
+                  <span className="label-text-alt text-neutral-400 italic">
+                    (với Google bạn không thể thay đổi email)
                   </span>
                 </div>
                 <input

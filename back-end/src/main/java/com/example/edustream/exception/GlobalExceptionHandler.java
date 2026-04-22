@@ -60,6 +60,19 @@ public class GlobalExceptionHandler {
 		return ResponseEntity.status(400).body(response);
 	}
 
+	@ExceptionHandler(exception = UsernameAlreadyExistsException.class)
+	public ResponseEntity<?> handleUsernameAlreadyExistsException(UsernameAlreadyExistsException ex) {
+		var response = responseMessage(400, "bad request", ex.getMessage());
+
+		return ResponseEntity.status(400).body(response);
+	}
+	@ExceptionHandler(exception = UsernameChangeCooldownException.class)
+	public ResponseEntity<?> handleUsernameChangeCooldownException(UsernameChangeCooldownException ex) {
+		var response = responseMessage(400, "bad request", ex.getMessage());
+
+		return ResponseEntity.status(400).body(response);
+	}
+
 	private Map<String, Object> responseMessage(int status, String error, String message) {
 
 		Map<String, Object> response = new HashMap<>();

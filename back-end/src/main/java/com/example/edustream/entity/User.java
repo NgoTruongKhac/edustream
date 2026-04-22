@@ -7,6 +7,8 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
+
 @Entity()
 @Table(name = "users")
 @Getter
@@ -28,8 +30,11 @@ public class User extends AbstractEntity<User> {
     @Column(name = "description")
     private String description;
 
-    @Column(name = "avatar")
+    @Column(name = "avatar_url")
     private String avatar;
+
+    @Column(name = "cover_image_url")
+    private String coverImage;
 
     @Column(name = "role")
     @Enumerated(EnumType.STRING)
@@ -41,5 +46,8 @@ public class User extends AbstractEntity<User> {
 
     @Column(name = "provider_id")
     private String providerId;
+
+    @Column(name = "username_last_updated_at")
+    private LocalDateTime usernameLastUpdatedAt;
 
 }

@@ -63,7 +63,6 @@ export default function Channel() {
 
   const [user, setUser] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
-  const [isValidChannel, setIsValidChannel] = useState(true);
 
   const currentUser = useAuthStore((state) => state.user);
 
@@ -71,7 +70,6 @@ export default function Channel() {
     const fetchUserProfile = async () => {
       // 1. Kiểm tra xem param có hợp lệ (bắt đầu bằng @) không
       if (!username || !username.startsWith("@")) {
-        setIsValidChannel(false);
         setLoading(false);
         return;
       }
@@ -93,15 +91,6 @@ export default function Channel() {
 
     fetchUserProfile();
   }, [username]);
-
-  // Nếu URL không có dấu @ (VD: /something), coi như không phải trang channel
-  if (!isValidChannel) {
-    return (
-      <div className="flex-1 p-8 text-center text-neutral-500">
-        Kênh không tồn tại (URL phải bắt đầu bằng @).
-      </div>
-    );
-  }
 
   if (loading) {
     return (
