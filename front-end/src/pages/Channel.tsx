@@ -52,13 +52,12 @@ interface UserProfile {
   description: string;
   email: string;
   avatar: string;
+  coverImage: string;
   authProvider: string;
   providerId: string;
 }
 
 export default function Channel() {
-  // Lấy username từ URL. VD URL là /@7clouds -> username = "7clouds"
-  // Biến username lúc này sẽ chứa cả dấu @ (Ví dụ: "@ngotruongkhac")
   const { username } = useParams<{ username: string }>();
 
   const [user, setUser] = useState<UserProfile | null>(null);
@@ -110,13 +109,15 @@ export default function Channel() {
   return (
     <main className="flex-1 overflow-y-auto bg-white">
       {/* 1. Phần Ảnh Bìa (Banner - Giả lập) */}
-      <div className="w-full h-25 sm:h-[100px] md:h-[200px] bg-neutral-200">
-        <img
-          src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=1200&q=80"
-          alt="Channel Banner"
-          className="w-full h-full object-cover"
-        />
-      </div>
+      {user?.coverImage && (
+        <div className="w-full h-25 sm:h-[100px] md:h-[200px] bg-neutral-200">
+          <img
+            src={user?.coverImage}
+            alt="Channel Banner"
+            className="w-full h-full object-cover"
+          />
+        </div>
+      )}
 
       <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
         {/* 2. Thông tin Channel */}

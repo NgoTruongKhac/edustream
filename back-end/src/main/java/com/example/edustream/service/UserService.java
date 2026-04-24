@@ -13,7 +13,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 
@@ -24,6 +26,7 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final UserMapper userMapper;
+    private final CloudinaryService cloudinaryService;
 
     public UserResponseDto getMe(UserPrincipal userPrincipal) {
 
@@ -85,6 +88,47 @@ public class UserService {
 
         User userUpdated = userRepository.save(user);
         return userMapper.toUserResponseDto(userUpdated);
+    }
+    public UserResponseDto updateCoverImage(UserPrincipal userPrincipal, MultipartFile imageFile) {
+        User user = validateAndGetUser(userPrincipal, imageFile);
+
+        String publicId = "edustream/users/" + user.getId() + "_cover";
+        try{
+            String imageUrl = cloudinaryService.uploadImage(imageFile, publicId);
+            user.setCoverImage(imageUrl);
+            userRepository.save(user);
+            return userMapper.toUserResponseDto(user);
+        } catch (IOException e) {
+            throw new RuntimeException("Upload avatar thất bại: " + e.getMessage(), e);
+        }
+
+    }
+
+    public UserResponseDto updateAvatar(UserPrincipal userPrincipal, MultipartFile avatarFile){
+        User user = validateAndGetUser(userPrincipal, avatarFile);
+
+        String publicId = "edustream/users/" + user.getId() + "_avatar";
+
+        try{
+            String imageUrl = cloudinaryService.uploadImage(avatarFile, publicId);
+
+            user.setAvatar(imageUrl);
+            userRepository.save(user);
+            return userMapper.toUserResponseDto(user);
+        } catch (IOException e) {
+            throw new RuntimeException("Upload avatar thất bại: " + e.getMessage(), e);
+        }
+
+    }
+
+    private User validateAndGetUser(UserPrincipal userPrincipal, MultipartFile file) {
+        if (userPrincipal == null) {
+            throw new IllegalStateException("userPrincipal is null");
+        }
+        if (file == null || file.isEmpty()) {
+            throw new IllegalArgumentException("File ảnh không được để trống");
+        }
+        return userPrincipal.getUser();
     }
 
 }

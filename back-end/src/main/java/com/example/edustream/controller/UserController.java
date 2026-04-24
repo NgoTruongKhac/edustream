@@ -11,6 +11,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api/v1/users")
@@ -50,11 +51,28 @@ public class UserController {
 
     // PUT /api/v1/users
     @PatchMapping
-    public ResponseEntity<UserResponseDto> updateUser(@Valid
-                                                      @AuthenticationPrincipal UserPrincipal userPrincipal,
-                                                      @RequestBody UserUpdateRequestDto userUpdateRequestDto) {
+    public ResponseEntity<UserResponseDto> updateUser(@Valid @RequestBody UserUpdateRequestDto userUpdateRequestDto,
+                                                      @AuthenticationPrincipal UserPrincipal userPrincipal) {
 
         UserResponseDto response = userService.updateUser(userPrincipal, userUpdateRequestDto);
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/upload-cover-image")
+    public ResponseEntity<UserResponseDto> uploadCoverImage(
+            @AuthenticationPrincipal UserPrincipal userPrincipal,
+            @RequestParam("coverImage") MultipartFile coverImage) {  // @RequestParam để nhận multipart
+
+        UserResponseDto response = userService.updateCoverImage(userPrincipal, coverImage);
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/upload-avatar")
+    public ResponseEntity<UserResponseDto> uploadAvatar(
+            @AuthenticationPrincipal UserPrincipal userPrincipal,
+            @RequestParam("avatar") MultipartFile avatar) {
+
+        UserResponseDto response = userService.updateAvatar(userPrincipal, avatar);
         return ResponseEntity.ok(response);
     }
 }

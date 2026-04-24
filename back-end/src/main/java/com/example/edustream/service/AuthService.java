@@ -103,6 +103,7 @@ public class AuthService {
 		newUser.setUsername(uniqueUsername);
 
 		newUser.setPassword(passwordEncoder.encode(registerRequestDto.getPassword()));
+		newUser.setAvatar("https://res.cloudinary.com/dgroxcuap/image/upload/v1763231600/avatar-blank_da7xpf.jpg");
 		newUser.setRole(Role.CUSTOMER);
 		newUser.setAuthProvider(AuthProvider.DEFAULT);
 
@@ -112,7 +113,6 @@ public class AuthService {
 		loginRequestDto.setEmail(registerRequestDto.getEmail());
 		loginRequestDto.setPassword(registerRequestDto.getPassword());
 
-//		authenticate(loginRequestDto);
 
 		clearSession();
 

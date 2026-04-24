@@ -154,7 +154,6 @@ export default function Navbar({ onOpenSidebar }: NavbarProps) {
           </div>
         ) : (
           <>
-            {/* Giao diện Desktop (Màn hình sm trở lên): Giữ nguyên UI cũ */}
             <div className="hidden sm:flex items-center gap-2 ml-2">
               <Link to={"/login"}>
                 <button className="btn btn-ghost text-neutral-700 hover:text-primary hover:bg-primary-50 font-medium rounded-xl">
@@ -169,7 +168,6 @@ export default function Navbar({ onOpenSidebar }: NavbarProps) {
               </Link>
             </div>
 
-            {/* Giao diện Mobile (Nhỏ hơn sm): Icon User mở dropdown */}
             <div className="dropdown dropdown-end sm:hidden ml-1">
               <label
                 tabIndex={0}

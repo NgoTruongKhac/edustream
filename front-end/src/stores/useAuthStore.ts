@@ -10,10 +10,13 @@ interface User {
   description: string;
   email: string;
   avatar: string;
+  coverImage: string;
+  authProvider: string;
 }
 
 interface AuthStore {
   user: User | null;
+  setUser: (user: User) => void;
   isAuthenticated: boolean;
   fetchCurrentUser: () => Promise<void>;
   login: (email: string, password: string) => Promise<void>;
@@ -25,6 +28,7 @@ interface AuthStore {
 export const useAuthStore = create<AuthStore>()((set, get) => ({
   user: null,
   isAuthenticated: false,
+  setUser: (user) => set({ user }),
   fetchCurrentUser: async () => {
     try {
       const currentUser = await getCurrentUser();

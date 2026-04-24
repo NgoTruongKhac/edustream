@@ -16,6 +16,7 @@ public class UserResponseDto {
 	private String description;
 	private String email;
 	private String avatar;
+	private String coverImage;
 	private String authProvider;
 	private String providerId;
 

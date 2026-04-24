@@ -12,6 +12,7 @@ import AuthGoogle from "./pages/AuthGoogle";
 import NotFound from "./pages/NotFound";
 import Channel from "./pages/Channel";
 import EditProfile from "./pages/EditProfile";
+import { Toaster } from "react-hot-toast";
 
 function App() {
   const { checkAuthStatus } = useAuthStore();
@@ -21,6 +22,13 @@ function App() {
   }, [checkAuthStatus]);
   return (
     <>
+      <Toaster
+        position="bottom-right"
+        reverseOrder={false}
+        toastOptions={{
+          duration: 3000,
+        }}
+      />
       <Routes>
         <Route element={<MainLayout />}>
           <Route path="/" element={<Home />} />
