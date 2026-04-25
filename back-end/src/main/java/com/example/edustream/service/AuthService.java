@@ -164,6 +164,18 @@ public class AuthService {
 
 	}
 
+	public void logout(HttpServletResponse response) {
+		// Xoá refresh token cookie
+		Cookie cookie = new Cookie("refreshToken", null);
+		cookie.setHttpOnly(true);
+		cookie.setPath("/");
+		cookie.setMaxAge(0); // QUAN TRỌNG: xoá cookie
+
+		// cookie.setSecure(true); // bật ở production (HTTPS)
+
+		response.addCookie(cookie);
+	}
+
 	private void clearSession() {
 		// TODO Auto-generated method stub
 

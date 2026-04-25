@@ -1,13 +1,18 @@
 package com.example.edustream.service;
 
+import com.example.edustream.dto.request.ChangeEmailRequestDto;
+import com.example.edustream.dto.request.OtpRequestDto;
+import com.example.edustream.dto.request.RegisterRequestDto;
 import com.example.edustream.dto.request.UserUpdateRequestDto;
 import com.example.edustream.dto.response.UserResponseDto;
 import com.example.edustream.entity.User;
 import com.example.edustream.entity.UserPrincipal;
-import com.example.edustream.exception.UsernameAlreadyExistsException;
-import com.example.edustream.exception.UsernameChangeCooldownException;
+import com.example.edustream.entity.enums.AuthProvider;
+import com.example.edustream.exception.*;
 import com.example.edustream.mapper.UserMapper;
 import com.example.edustream.repository.UserRepository;
+import com.example.edustream.util.SendEmail;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -18,6 +23,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.Random;
 
 
 @Service
@@ -27,6 +33,9 @@ public class UserService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
     private final CloudinaryService cloudinaryService;
+    private final SendEmail  sendEmail;
+    private final HttpSession session;
+    private static final int OTP_EXP = 5;
 
     public UserResponseDto getMe(UserPrincipal userPrincipal) {
 
@@ -119,6 +128,62 @@ public class UserService {
             throw new RuntimeException("Upload avatar thất bại: " + e.getMessage(), e);
         }
 
+    }
+    public void changeEmail(ChangeEmailRequestDto changeEmailRequestDto) {
+        // check exist email
+        if (userRepository.findByEmailAndAuthProvider(changeEmailRequestDto.getNewEmail(), AuthProvider.DEFAULT).isPresent()) {
+            throw new EmailAlreadyExistsException("Email already exists");
+        }
+
+        // generate random OTP (6 numbers)
+        Random random = new Random();
+        int otpValue = 100000 + random.nextInt(900000);
+        String otp = String.valueOf(otpValue);
+
+        // send email with otp to registerRequestDto.getEmail()
+        sendEmail.sendOtpToEmail(changeEmailRequestDto.getNewEmail(), otp);
+
+        // save session include requestDto and OTP and exp OTP
+        session.setAttribute("newEmail", changeEmailRequestDto.getNewEmail());
+        session.setAttribute("otp", otp);
+        session.setAttribute("otp_exp", System.currentTimeMillis() + OTP_EXP * 60 * 1000);
+    }
+
+    public UserResponseDto verifyChangeEmail(UserPrincipal userPrincipal, OtpRequestDto otpRequestDto) {
+        if (userPrincipal == null) {
+            throw new IllegalStateException("userPrincipal is null");
+        }
+
+        String sessionOtp = (String) session.getAttribute("otp");
+        Long otpExp = (Long) session.getAttribute("otp_exp");
+        String newEmail = (String) session.getAttribute("newEmail");
+
+        // 1. Kiểm tra OTP
+        if (sessionOtp == null || !sessionOtp.equals(otpRequestDto.getOtp())) {
+            throw new NotMatchingOtpException("Invalid OTP code");
+        }
+
+        // 2. Kiểm tra hết hạn
+        if (System.currentTimeMillis() > otpExp) {
+            clearOtpSession();
+            throw new ExpiredOtpException("OTP has expired. Please request a new one.");
+        }
+
+        // 3. Thực hiện patch user với email mới
+        User user = userPrincipal.getUser();
+        user.setEmail(newEmail);
+        User updatedUser = userRepository.save(user);
+
+        // 4. Xóa session sau khi đã verify thành công
+        clearOtpSession();
+
+        return userMapper.toUserResponseDto(updatedUser);
+    }
+
+    private void clearOtpSession() {
+        session.removeAttribute("otp");
+        session.removeAttribute("otp_exp");
+        session.removeAttribute("newEmail");
     }
 
     private User validateAndGetUser(UserPrincipal userPrincipal, MultipartFile file) {

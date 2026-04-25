@@ -6,9 +6,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { registerSchema } from "@/utils/validationSchema";
 import { register as signup } from "@/api/authApi";
 import { useShowModalStore } from "@/stores/useShowModal";
-
 import z from "zod";
 import { OTPModal } from "@/components/OTPModal";
+import Cookies from "js-cookie";
+import { verifyOtp } from "@/api/authApi";
 
 type LoginFormData = z.infer<typeof registerSchema>;
 
@@ -181,7 +182,14 @@ export default function Register() {
       </div>
       {showModal && (
         <dialog className="modal modal-open">
-          <OTPModal />
+          <OTPModal
+            verifyFn={async (otp) => {
+              const { accessToken, refreshToken } = await verifyOtp(otp);
+              Cookies.set("accessToken", accessToken);
+              Cookies.set("refreshToken", refreshToken);
+            }}
+            onSuccess={() => window.location.replace("/")}
+          />
         </dialog>
       )}
     </div>

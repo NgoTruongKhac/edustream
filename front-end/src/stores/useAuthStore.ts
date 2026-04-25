@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { getCurrentUser } from "@/api/userApi";
-import { login as loginApi } from "@/api/authApi";
+import { login as loginApi, logout } from "@/api/authApi";
 import Cookies from "js-cookie";
 
 interface User {
@@ -20,7 +20,7 @@ interface AuthStore {
   isAuthenticated: boolean;
   fetchCurrentUser: () => Promise<void>;
   login: (email: string, password: string) => Promise<void>;
-  logout: () => void;
+  logout: () => Promise<void>;
   isLoading: boolean;
   checkAuthStatus: () => Promise<void>;
 }
@@ -57,9 +57,8 @@ export const useAuthStore = create<AuthStore>()((set, get) => ({
       console.log(error);
     }
   },
-  logout: () => {
-    Cookies.remove("accessToken");
-    Cookies.remove("refreshToken");
+  logout: async () => {
+    await logout();
     set({
       user: null,
       isAuthenticated: false,

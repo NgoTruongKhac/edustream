@@ -13,6 +13,7 @@ import NotFound from "./pages/NotFound";
 import Channel from "./pages/Channel";
 import EditProfile from "./pages/EditProfile";
 import { Toaster } from "react-hot-toast";
+import ManageVideos from "./pages/ManageVideos";
 
 function App() {
   const { checkAuthStatus } = useAuthStore();
@@ -37,6 +38,7 @@ function App() {
           <Route path="/profile" element={<Profile />} />
           <Route path="/:username" element={<Channel />} />
           <Route path="/edit-profile" element={<EditProfile />} />
+          <Route path="/manage-videos" element={<ManageVideos />} />
         </Route>
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />

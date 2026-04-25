@@ -45,3 +45,13 @@ export const uploadAvatar = async (file: File) => {
   });
   return response.data;
 };
+
+export const changeEmail = async (newEmail: string) => {
+  const response = await api.post("/users/change-email", { newEmail });
+  return response.data;
+};
+export const verifyChangeEmail = async (otp: string) => {
+  const response = await api.post("/users/verify-change-email", { otp });
+
+  return response.data;
+};

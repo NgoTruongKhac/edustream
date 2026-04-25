@@ -1,10 +1,13 @@
 import { useState, useEffect } from "react";
 import { useShowModalStore } from "@/stores/useShowModal";
-import { verifyOtp } from "@/api/authApi";
 import { AxiosError } from "axios";
-import Cookies from "js-cookie";
 
-export function OTPModal() {
+interface OTPModalProps {
+  verifyFn: (otp: string) => Promise<unknown>;
+  onSuccess?: () => void;
+}
+
+export function OTPModal({ verifyFn, onSuccess }: OTPModalProps) {
   const showModal = useShowModalStore((state) => state.showModal);
   const setShowModal = useShowModalStore((state) => state.setShowModal);
 
@@ -80,19 +83,12 @@ export function OTPModal() {
     }
   };
 
-  const onSubmit = async (event: any) => {
+  const onSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-
-    const otp = otpCode.join("");
-
     try {
-      const { accessToken, refreshToken } = await verifyOtp(otp);
-
-      Cookies.set("accessToken", accessToken);
-      Cookies.set("refreshToken", refreshToken);
-
+      await verifyFn(otpCode.join(""));
       setShowModal(false);
-      window.location.replace("/");
+      onSuccess?.();
     } catch (error) {
       const axiosError = error as AxiosError<{ message: string }>;
       if (axiosError.response?.data) {

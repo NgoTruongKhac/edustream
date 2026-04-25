@@ -24,9 +24,10 @@ export const verifyOtp = async (otp: string) => {
   return response.data;
 };
 
-export const logout = () => {
+export const logout = async () => {
   Cookies.remove("accessToken");
-  Cookies.remove("refreshToken");
+  const response = await api.post("/auth/logout");
+  return response.data;
 };
 
 export const loginWithGoogle = () => {

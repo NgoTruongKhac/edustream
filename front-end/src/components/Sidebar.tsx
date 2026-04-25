@@ -4,7 +4,7 @@ import {
   MonitorPlay,
   Settings,
   HelpCircle,
-  User,
+  SquarePlay,
   AlignJustify,
 } from "lucide-react";
 import { NavLink } from "react-router-dom";
@@ -25,7 +25,7 @@ const menus = [
   { to: "/", label: "Trang chủ", icon: Home, end: true },
   { to: "/playlist", label: "Playlist", icon: ListVideo },
   { to: "/subscriptions", label: "Kênh đăng ký", icon: MonitorPlay },
-  { to: "/profile", label: "Hồ sơ", icon: User },
+  { to: "/manage-videos", label: "Video của tôi", icon: SquarePlay },
 ];
 
 export default function Sidebar({ isOpen, onClose }: SidebarProps) {

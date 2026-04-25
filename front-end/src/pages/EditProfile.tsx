@@ -1,13 +1,22 @@
 import React, { useState, useEffect } from "react";
 import { useAuthStore } from "@/stores/useAuthStore";
 import { Camera, ArrowLeft } from "lucide-react";
-import { updateUser } from "@/api/userApi";
 import toast from "react-hot-toast";
-import { uploadCoverImage, uploadAvatar } from "@/api/userApi";
+import {
+  uploadCoverImage,
+  uploadAvatar,
+  changeEmail,
+  verifyChangeEmail,
+  updateUser,
+} from "@/api/userApi";
+import { useShowModalStore } from "@/stores/useShowModal";
+import { OTPModal } from "@/components/OTPModal";
 export default function EditProfile() {
   const user = useAuthStore((state) => state.user);
   // Nếu Zustand store của bạn có hàm cập nhật user, hãy lấy ra để dùng. Ví dụ:
   const setUser = useAuthStore((state) => state.setUser);
+
+  const isGoogleUser = user?.authProvider === "GOOGLE";
 
   // 1. Khởi tạo state để lưu trữ dữ liệu đang chỉnh sửa trên form
   const [formData, setFormData] = useState({
@@ -18,6 +27,16 @@ export default function EditProfile() {
 
   const [isUpdating, setIsUpdating] = useState(false);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
+
+  const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
+
+  const [newEmail, setNewEmail] = useState("");
+  const [isUpdatingEmail, setIsUpdatingEmail] = useState(false);
+
+  const showModal = useShowModalStore((state) => state.showModal);
+  const setShowModal = useShowModalStore((state) => state.setShowModal);
+
+  const { logout } = useAuthStore();
 
   // 2. Cập nhật formData khi thông tin user được tải xong
   useEffect(() => {
@@ -112,6 +131,21 @@ export default function EditProfile() {
     } finally {
       setIsUpdating(false);
     }
+  };
+
+  const handleChangeEmail = async () => {
+    try {
+      await changeEmail(newEmail);
+      setIsEmailModalOpen(false);
+      setShowModal(true);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const handleLogout = () => {
+    logout();
+    window.location.href = "/login";
   };
 
   const handleBack = () => {
@@ -270,8 +304,11 @@ export default function EditProfile() {
                 />
                 <div>
                   <button
+                    disabled={isGoogleUser}
+                    onClick={() => setIsEmailModalOpen(true)}
                     type="button"
-                    className="btn bg-primary-500 text-white mt-4 rounded-xl"
+                    className="btn bg-primary-500 text-white mt-4 rounded-xl 
+                    "
                   >
                     thay đổi Email
                   </button>
@@ -338,6 +375,78 @@ export default function EditProfile() {
           </form>
         </div>
       </div>
+      {isEmailModalOpen && (
+        <div className="modal modal-open">
+          <div className="modal-box rounded-xl">
+            <h3 className="font-bold text-lg mb-4">Thay đổi Email</h3>
+
+            {/* Old Email */}
+            <div className="form-control mb-4">
+              <div className="label">
+                <span className="label-text">Email hiện tại</span>
+              </div>
+              <p className="px-3 py-2 bg-neutral-100 rounded-lg text-neutral-700">
+                {user.email}
+              </p>
+            </div>
+
+            {/* New Email */}
+            <input
+              type="email"
+              name="newEmail"
+              value={newEmail}
+              onChange={(e) => setNewEmail(e.target.value)}
+              placeholder="Nhập email mới..."
+              className="input input-bordered w-full"
+              required
+            />
+            <div className="flex items-start gap-2 mt-3 p-3 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-700">
+              <span>⚠️</span>
+              <p>
+                Bạn sẽ phải <span className="font-semibold">đăng nhập lại</span>{" "}
+                sau khi thay đổi email, vì các phiên đăng nhập hiện tại sẽ không
+                còn hợp lệ.
+              </p>
+            </div>
+
+            <div className="modal-action">
+              <button
+                type="button"
+                onClick={() => setIsEmailModalOpen(false)}
+                className="btn btn-ghost rounded-xl"
+              >
+                Hủy
+              </button>
+
+              <button
+                type="submit"
+                onClick={handleChangeEmail}
+                disabled={isUpdatingEmail}
+                className="btn bg-primary-500 text-white rounded-xl"
+              >
+                {isUpdatingEmail ? "Đang xử lý..." : "Xác nhận"}
+              </button>
+            </div>
+          </div>
+
+          {/* Click ngoài để đóng */}
+          <div
+            className="modal-backdrop"
+            onClick={() => setIsEmailModalOpen(false)}
+          ></div>
+        </div>
+      )}
+      {showModal && (
+        <dialog className="modal modal-open">
+          <OTPModal
+            verifyFn={verifyChangeEmail}
+            onSuccess={() => {
+              toast.success("Email đã được cập nhật thành công!");
+              handleLogout();
+            }}
+          />
+        </dialog>
+      )}
     </div>
   );
 }

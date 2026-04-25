@@ -1,5 +1,7 @@
 package com.example.edustream.controller;
 
+import com.example.edustream.dto.request.ChangeEmailRequestDto;
+import com.example.edustream.dto.request.OtpRequestDto;
 import com.example.edustream.dto.request.UserUpdateRequestDto;
 import com.example.edustream.dto.response.PageResponse;
 import com.example.edustream.dto.response.UserResponseDto;
@@ -12,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+
 
 @RestController
 @RequestMapping("/api/v1/users")
@@ -73,6 +76,22 @@ public class UserController {
             @RequestParam("avatar") MultipartFile avatar) {
 
         UserResponseDto response = userService.updateAvatar(userPrincipal, avatar);
+        return ResponseEntity.ok(response);
+    }
+    @PostMapping("/change-email")
+    public ResponseEntity<?> changeEmail(@Valid @RequestBody ChangeEmailRequestDto changeEmailRequestDto) {
+        userService.changeEmail(changeEmailRequestDto);
+
+        // Trả về JSON: {"message": "otp sent to your email"}
+        return ResponseEntity.ok(java.util.Map.of("message", "otp sent to your email"));
+    }
+
+    @PostMapping("/verify-change-email")
+    public ResponseEntity<UserResponseDto> verifyChangeEmail(
+            @AuthenticationPrincipal UserPrincipal userPrincipal,
+            @RequestBody OtpRequestDto otpRequestDto) {
+
+        UserResponseDto response = userService.verifyChangeEmail(userPrincipal, otpRequestDto);
         return ResponseEntity.ok(response);
     }
 }
