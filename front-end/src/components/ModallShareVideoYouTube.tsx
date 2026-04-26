@@ -1,4 +1,9 @@
+import {
+  createVideoYoutube,
+  type VideoYoutubeRequestDto,
+} from "@/api/videoApi";
 import { useState, useRef } from "react";
+import toast from "react-hot-toast";
 
 // ─── Utils ───────────────────────────────────────────────────────────────────
 
@@ -70,6 +75,7 @@ interface VideoInfo {
 export default function ModalShareVideoYouTube() {
   const [url, setUrl] = useState("");
   const [loading, setLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [video, setVideo] = useState<VideoInfo | null>(null);
   const [hashtags, setHashtags] = useState<string[]>([]);
@@ -154,6 +160,57 @@ export default function ModalShareVideoYouTube() {
   const removeCategory = (cat: string) =>
     setCategories((prev) => prev.filter((c) => c !== cat));
 
+  // Hàm xử lý khi bấm nút "Chia sẻ"
+  const handleSubmit = async () => {
+    if (!video) return;
+
+    const videoId = extractVideoId(url);
+    if (!videoId) {
+      setError("Không thể xác định Video ID.");
+      return;
+    }
+
+    // 1. Chuẩn bị payload chuẩn với DTO
+    const payload: VideoYoutubeRequestDto = {
+      title: video.title,
+      description: video.description,
+      thumbnail: video.thumbnailUrl,
+      duration: video.durationSeconds,
+      videoYoutubeUrl: url,
+      videoYoutubeId: videoId,
+      hashtags: hashtags.map((t) => t.replace(/^#/, "")),
+      categories: categories,
+    };
+
+    setIsSubmitting(true);
+    setError("");
+
+    try {
+      // 2. Gọi API
+      await createVideoYoutube(payload);
+
+      // 3. Xử lý thành công
+      toast.success("Chia sẻ video thành công!");
+
+      // Reset form
+      setUrl("");
+      setVideo(null);
+      setHashtags([]);
+      setCategories([]);
+
+      // (Tuỳ chọn): Nếu bạn dùng Modal của daisyUI, bạn có thể đóng modal bằng code:
+      const modal = document.getElementById(
+        "modal_share_video_youtube",
+      ) as HTMLDialogElement;
+      if (modal) modal.close();
+    } catch (err) {
+      console.error(err);
+      setError("Lưu video thất bại. Vui lòng kiểm tra lại hệ thống.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <div className="modal-box w-full max-w-2xl p-0 overflow-hidden rounded-2xl">
       {/* Header */}
@@ -219,7 +276,7 @@ export default function ModalShareVideoYouTube() {
           <div className="space-y-4 animate-in fade-in duration-300">
             {/* Thumbnail */}
             {video.thumbnailUrl && (
-              <div className="w-full rounded-xl overflow-hidden border border-base-300 aspect-video bg-base-200">
+              <div className="w-90 rounded-xl overflow-hidden border border-base-300 aspect-video bg-base-200">
                 <img
                   src={video.thumbnailUrl}
                   alt={video.title}
@@ -341,7 +398,7 @@ export default function ModalShareVideoYouTube() {
                   />
                 </label>
                 <button
-                  className="btn btn-sm btn-outline btn-primary"
+                  className="btn btn-sm btn-outline bg-primary-500 text-white"
                   onClick={addHashtag}
                   disabled={!newHashtag.trim()}
                 >
@@ -419,8 +476,16 @@ export default function ModalShareVideoYouTube() {
         <form method="dialog">
           <button className="btn btn-ghost btn-sm">Huỷ</button>
         </form>
-        <button className="btn btn-primary btn-sm" disabled={!video || loading}>
-          Chia sẻ
+        <button
+          className="btn bg-primary-500 text-white btn-sm"
+          disabled={!video || loading || isSubmitting}
+          onClick={handleSubmit}
+        >
+          {isSubmitting ? (
+            <span className="loading loading-spinner loading-xs"></span>
+          ) : (
+            "Chia sẻ"
+          )}
         </button>
       </div>
     </div>

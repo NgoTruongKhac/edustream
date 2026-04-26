@@ -1,6 +1,7 @@
 import ModalShareVideoYouTube from "@/components/ModallShareVideoYouTube";
 import RequireAuth from "@/components/RequireAuth";
 import { useAuthStore } from "@/stores/useAuthStore";
+import { getVideosByCurrentUser } from "@/api/videoApi";
 import {
   Link,
   CloudUpload,
@@ -9,57 +10,79 @@ import {
   Pencil,
   Trash2,
   SquarePlay,
+  Loader2,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
-// --- Mock Data ---
+// --- Types ---
+interface VideoResponseDto {
+  id: string;
+  title: string;
+  thumbnail: string;
+  duration: number;
+  videoType: "YOUTUBE" | "UPLOAD";
+  videoYoutubeUrl: string;
+  fullName: string;
+  avatar: string;
+  createdAt: string;
+}
 
-const videos = [
-  {
-    id: 1,
-    title: "Đại số tuyến tính - Bài 1: Ma trận",
-    teacher: "Nguyễn Văn A",
-    category: "Toán học",
-    dotColor: "bg-blue-600",
-    date: "24 Thg 10, 2023",
-    views: "1.2K",
-    status: "Công khai",
-    duration: "12:45",
-    thumbnail:
-      "https://images.unsplash.com/photo-1632559646095-c49646c25229?q=80&w=200&auto=format&fit=crop",
-  },
-  {
-    id: 2,
-    title: "Phân tích tác phẩm Chí Phèo - Phần 1",
-    teacher: "Trần Thị B",
-    category: "Văn học",
-    dotColor: "bg-red-500",
-    date: "22 Thg 10, 2023",
-    views: "856",
-    status: "Công khai",
-    duration: "45:20",
-    thumbnail:
-      "https://images.unsplash.com/photo-1456406644174-8ddd4cd52a06?q=80&w=200&auto=format&fit=crop",
-  },
-  {
-    id: 3,
-    title: "Cấu trúc tế bào động vật và thực vật",
-    teacher: "Lê Văn C",
-    category: "Khoa học",
-    dotColor: "bg-indigo-500",
-    date: "20 Thg 10, 2023",
-    views: "0",
-    status: "Riêng tư",
-    duration: "28:15",
-    thumbnail:
-      "https://images.unsplash.com/photo-1532094349884-543bc11b234d?q=80&w=200&auto=format&fit=crop",
-  },
-];
+interface PageResponse<T> {
+  content: T[];
+  totalPages: number;
+  totalElements: number;
+  number: number; // current page (0-indexed)
+  last: boolean;
+}
+
+// --- Helpers ---
+const formatDuration = (seconds: number): string => {
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  return `${m}:${String(s).padStart(2, "0")}`;
+};
+
+const formatDate = (isoString: string): string => {
+  return new Date(isoString).toLocaleDateString("vi-VN", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+};
 
 export default function ManageVideos() {
   const user = useAuthStore((state) => state.user);
-  const [openModalShareVideoYoutube, setOpenModalShareVideoYoutube] =
-    useState(false);
+
+  const [videos, setVideos] = useState<VideoResponseDto[]>([]);
+  const [currentPage, setCurrentPage] = useState(0);
+  const [isLastPage, setIsLastPage] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchVideos = async (page: number, replace = false) => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const data: PageResponse<VideoResponseDto> =
+        await getVideosByCurrentUser(page);
+
+      setVideos((prev) =>
+        replace ? data.content : [...prev, ...data.content],
+      );
+      setCurrentPage(data.number);
+      setIsLastPage(data.last);
+    } catch (err) {
+      setError("Không thể tải danh sách video. Vui lòng thử lại.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (user) {
+      fetchVideos(0, true);
+    }
+  }, [user]);
 
   if (!user) {
     return (
@@ -69,6 +92,7 @@ export default function ManageVideos() {
       />
     );
   }
+
   return (
     <div className="min-h-screen bg-[#f8f9fc] p-4 md:p-8 font-sans text-neutral-900">
       <div className="max-w-7xl mx-auto">
@@ -82,7 +106,11 @@ export default function ManageVideos() {
           <div className="flex flex-wrap gap-3">
             <button
               onClick={() =>
-                document.getElementById("modal_share_video_youtube").showModal()
+                (
+                  document.getElementById(
+                    "modal_share_video_youtube",
+                  ) as HTMLDialogElement
+                )?.showModal()
               }
               className="btn bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 shadow-sm rounded-xl px-5"
             >
@@ -95,6 +123,7 @@ export default function ManageVideos() {
             </button>
           </div>
         </div>
+
         {/* --- Video List Section --- */}
         <div>
           <div className="flex justify-between items-center mb-6">
@@ -109,93 +138,135 @@ export default function ManageVideos() {
             </div>
           </div>
 
-          <div className="overflow-x-auto pb-4">
-            <div className="min-w-[900px]">
-              {/* Table Header */}
-              <div className="grid grid-cols-12 gap-4 px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
-                <div className="col-span-5">Video</div>
-                <div className="col-span-2">Danh mục</div>
-                <div className="col-span-2">Ngày tải lên</div>
-                <div className="col-span-2">Lượt xem</div>
-                <div className="col-span-1 text-center">Thao tác</div>
-              </div>
+          {/* Error state */}
+          {error && (
+            <div className="text-center py-8 text-red-500">
+              <p>{error}</p>
+              <button
+                onClick={() => fetchVideos(0, true)}
+                className="mt-3 btn btn-sm btn-outline btn-error"
+              >
+                Thử lại
+              </button>
+            </div>
+          )}
 
-              {/* Video Rows */}
-              <div className="flex flex-col gap-4">
-                {videos.map((video) => (
-                  <div
-                    key={video.id}
-                    className="rounded-xl p-3 grid grid-cols-12 gap-4 items-center hover:shadow-soft transition-shadow"
-                  >
-                    {/* Col 1: Video Info */}
-                    <div className="col-span-5 flex gap-4 items-center">
-                      <div className="relative w-36 h-20 rounded-lg overflow-hidden shrink-0 bg-gray-900">
-                        <img
-                          src={video.thumbnail}
-                          alt={video.title}
-                          className="w-full h-full object-cover opacity-80"
-                        />
-                        <span className="absolute bottom-1 right-1 bg-black/80 text-white text-[10px] font-medium px-1.5 py-0.5 rounded">
-                          {video.duration}
-                        </span>
-                      </div>
-                      <div>
-                        <h4 className="font-bold text-gray-900 text-base mb-1 line-clamp-1">
-                          {video.title}
-                        </h4>
-                        <p className="text-sm text-gray-500">
-                          Giáo viên: {video.teacher}
-                        </p>
-                      </div>
-                    </div>
+          {/* Empty state */}
+          {!isLoading && !error && videos.length === 0 && (
+            <div className="text-center py-16 text-gray-400">
+              <SquarePlay size={48} className="mx-auto mb-3 opacity-30" />
+              <p>Bạn chưa có video nào.</p>
+            </div>
+          )}
 
-                    {/* Col 2: Category */}
-                    <div className="col-span-2">
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-50 text-slate-700 text-sm font-medium">
+          {/* Table */}
+          {videos.length > 0 && (
+            <div className="overflow-x-auto pb-4">
+              <div className="min-w-[900px]">
+                {/* Table Header */}
+                <div className="grid grid-cols-12 gap-4 px-4 py-2 text-sm font-semibold text-gray-700 tracking-wider mb-2">
+                  <div className="col-span-5">Video</div>
+                  <div className="col-span-2">Loại</div>
+                  <div className="col-span-3">Ngày tải lên</div>
+                  <div className="col-span-2 text-center">Thao tác</div>
+                </div>
+
+                {/* Video Rows */}
+                <div className="flex flex-col gap-4">
+                  {videos.map((video) => (
+                    <div
+                      key={video.id}
+                      className="rounded-xl p-3 grid grid-cols-12 gap-4 items-center hover:shadow-soft transition-shadow bg-white"
+                    >
+                      {/* Col 1: Video Info */}
+                      <div className="col-span-5 flex gap-4 items-center">
+                        <div className="relative w-36 h-20 rounded-lg overflow-hidden shrink-0 bg-gray-900">
+                          <img
+                            src={video.thumbnail}
+                            alt={video.title}
+                            className="w-full h-full object-cover opacity-80"
+                          />
+                          <span className="absolute bottom-1 right-1 bg-black/80 text-white text-[10px] font-medium px-1.5 py-0.5 rounded">
+                            {formatDuration(video.duration)}
+                          </span>
+                        </div>
+                        <div>
+                          <h4 className="font-bold text-gray-900 text-base mb-1 line-clamp-1">
+                            {video.title}
+                          </h4>
+                          <div className="flex items-center gap-2 mt-1">
+                            <img
+                              src={video.avatar}
+                              alt={video.fullName}
+                              className="w-6 h-6 rounded-full object-cover"
+                            />
+                            <p className="text-sm text-gray-500">
+                              {video.fullName}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Col 2: Video Type */}
+                      <div className="col-span-2">
                         <span
-                          className={`w-2 h-2 rounded-full ${video.dotColor}`}
-                        ></span>
-                        {video.category}
-                      </span>
-                    </div>
-
-                    {/* Col 3: Date */}
-                    <div className="col-span-2 text-gray-600 text-sm font-medium">
-                      {video.date}
-                    </div>
-
-                    {/* Col 4: Views & Status */}
-                    <div className="col-span-2 flex items-center gap-4">
-                      <span className="text-gray-700 text-sm font-medium">
-                        {video.views}
-                      </span>
-                      {video.status === "Công khai" ? (
-                        <span className="px-3 py-1 bg-green-50 text-green-700 text-xs font-medium rounded-full">
-                          Công khai
+                          className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium ${
+                            video.videoType === "YOUTUBE"
+                              ? "bg-red-50 text-red-700"
+                              : "bg-blue-50 text-blue-700"
+                          }`}
+                        >
+                          <span
+                            className={`w-2 h-2 rounded-full ${
+                              video.videoType === "YOUTUBE"
+                                ? "bg-red-500"
+                                : "bg-blue-600"
+                            }`}
+                          />
+                          {video.videoType === "YOUTUBE" ? "YouTube" : "Upload"}
                         </span>
-                      ) : (
-                        <span className="px-3 py-1 bg-gray-100 text-gray-600 text-xs font-medium rounded-full">
-                          Riêng tư
-                        </span>
-                      )}
-                    </div>
+                      </div>
 
-                    {/* Col 5: Actions */}
-                    <div className="col-span-1 flex justify-center gap-1">
-                      <button className="btn btn-ghost btn-sm btn-circle text-gray-500 hover:text-primary">
-                        <Pencil size={18} />
-                      </button>
-                      <button className="btn btn-ghost btn-sm btn-circle text-gray-500 hover:text-red-500">
-                        <Trash2 size={18} />
-                      </button>
+                      {/* Col 3: Date */}
+                      <div className="col-span-3 text-gray-600 text-sm font-medium">
+                        {formatDate(video.createdAt)}
+                      </div>
+
+                      {/* Col 4: Actions */}
+                      <div className="col-span-2 flex justify-center gap-1">
+                        <button className="btn btn-ghost btn-sm btn-circle text-gray-500 hover:text-primary">
+                          <Pencil size={18} />
+                        </button>
+                        <button className="btn btn-ghost btn-sm btn-circle text-gray-500 hover:text-red-500">
+                          <Trash2 size={18} />
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
             </div>
+          )}
+
+          {/* Load more / Loading indicator */}
+          <div className="flex justify-center mt-6">
+            {isLoading ? (
+              <Loader2 size={24} className="animate-spin text-gray-400" />
+            ) : (
+              !isLastPage &&
+              videos.length > 0 && (
+                <button
+                  onClick={() => fetchVideos(currentPage + 1)}
+                  className="btn bg-primary-500 text-white btn-sm rounded-xl px-6"
+                >
+                  Xem thêm
+                </button>
+              )
+            )}
           </div>
         </div>
       </div>
+
       <dialog id="modal_share_video_youtube" className="modal">
         <ModalShareVideoYouTube />
       </dialog>

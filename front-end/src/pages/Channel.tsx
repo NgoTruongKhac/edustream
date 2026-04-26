@@ -1,48 +1,29 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { getUserByUsername } from "@/api/userApi";
+import { getVideosByUsername } from "@/api/videoApi";
 import VideoCard from "@/components/VideoCard";
 import { useAuthStore } from "@/stores/useAuthStore";
 
-// Mock data giả lập api getVideoByUsername
-const MOCK_VIDEOS = [
-  {
-    id: 1,
-    thumbnail:
-      "https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=600&q=80",
-    duration: "12:45",
-    title: "Giải Tích 1: Giới Hạn Hàm Số - Lý Thuyết...",
-    views: "124N lượt xem",
-    time: "2 ngày trước",
-  },
-  {
-    id: 2,
-    thumbnail:
-      "https://images.unsplash.com/photo-1532094349884-543bc11b234d?w=600&q=80",
-    duration: "45:20",
-    title: "Khám Phá Cấu Trúc Nguyên Tử: Từ...",
-    views: "89N lượt xem",
-    time: "1 tuần trước",
-  },
-  {
-    id: 3,
-    thumbnail:
-      "https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=600&q=80",
-    duration: "1:15:00",
-    title: "Khóa Học Python Cơ Bản Dành Cho Người...",
-    views: "250N lượt xem",
-    time: "1 tháng trước",
-  },
-  {
-    id: 4,
-    thumbnail:
-      "https://images.unsplash.com/photo-1546410531-bea5aad14e00?w=600&q=80",
-    duration: "18:30",
-    title: "5 Phương Pháp Luyện Nghe Tiếng Anh Hiệu...",
-    views: "500N lượt xem",
-    time: "3 tháng trước",
-  },
-];
+// --- Types ---
+interface VideoResponseDto {
+  id: number;
+  title: string;
+  thumbnail: string;
+  duration: number;
+  videoType: "YOUTUBE" | "UPLOAD";
+  fullName: string;
+  avatar: string;
+  createdAt: string;
+}
+
+interface PageResponse<T> {
+  content: T[];
+  totalPages: number;
+  totalElements: number;
+  number: number;
+  last: boolean;
+}
 
 // Định nghĩa Interface dựa theo UserResponseDto.java
 interface UserProfile {
@@ -63,22 +44,24 @@ export default function Channel() {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const [videos, setVideos] = useState<VideoResponseDto[]>([]);
+  const [currentPage, setCurrentPage] = useState(0);
+  const [isLastPage, setIsLastPage] = useState(false);
+  const [videosLoading, setVideosLoading] = useState(false);
+
   const currentUser = useAuthStore((state) => state.user);
 
   useEffect(() => {
     const fetchUserProfile = async () => {
-      // 1. Kiểm tra xem param có hợp lệ (bắt đầu bằng @) không
       if (!username || !username.startsWith("@")) {
         setLoading(false);
         return;
       }
 
-      // 2. Cắt bỏ dấu @ ở đầu tiên để lấy username thật ("ngotruongkhac")
       const actualUsername = username.substring(1);
 
       try {
         setLoading(true);
-        // 3. Gọi API với username không có @
         const userData = await getUserByUsername(actualUsername);
         setUser(userData);
       } catch (error) {
@@ -90,6 +73,40 @@ export default function Channel() {
 
     fetchUserProfile();
   }, [username]);
+
+  useEffect(() => {
+    if (!username || !username.startsWith("@")) return;
+    const actualUsername = username.substring(1);
+    fetchVideos(actualUsername, 0, true);
+  }, [username]);
+
+  const fetchVideos = async (
+    actualUsername: string,
+    page: number,
+    replace = false,
+  ) => {
+    setVideosLoading(true);
+    try {
+      const data: PageResponse<VideoResponseDto> = await getVideosByUsername(
+        actualUsername,
+        page,
+      );
+      setVideos((prev) =>
+        replace ? data.content : [...prev, ...data.content],
+      );
+      setCurrentPage(data.number);
+      setIsLastPage(data.last);
+    } catch (error) {
+      console.error("Lỗi khi tải danh sách video:", error);
+    } finally {
+      setVideosLoading(false);
+    }
+  };
+
+  const handleLoadMore = () => {
+    if (!username || !username.startsWith("@")) return;
+    fetchVideos(username.substring(1), currentPage + 1);
+  };
 
   if (loading) {
     return (
@@ -106,6 +123,7 @@ export default function Channel() {
       </div>
     );
   }
+
   return (
     <main className="flex-1 overflow-y-auto bg-white">
       {/* 1. Phần Ảnh Bìa (Banner - Giả lập) */}
@@ -141,9 +159,9 @@ export default function Channel() {
                 @{user.username}
               </span>
               <span>•</span>
-              <span>100 N người đăng ký</span> {/* Giả lập số liệu */}
+              <span>100 N người đăng ký</span>
               <span>•</span>
-              <span>120 video</span>
+              <span>{videos.length} video</span>
             </div>
 
             {user.description && (
@@ -154,14 +172,23 @@ export default function Channel() {
 
             <div className="mt-4 flex gap-2">
               {currentUser ? (
-                <Link
-                  to={"/edit-profile"}
-                  className="btn bg-primary-500 text-white rounded-xl text-sm font-medium hover:bg-neutral-800 transition"
-                >
-                  tuỳ chỉnh hồ sơ
-                </Link>
+                <>
+                  <Link
+                    to={"/edit-profile"}
+                    className="btn bg-primary-500 text-white rounded-xl text-sm font-medium hover:bg-primary-600 transition"
+                  >
+                    chỉnh sửa hồ sơ
+                  </Link>
+
+                  <Link
+                    to={"/manage-videos"}
+                    className="btn bg-primary-500 text-white rounded-xl text-sm font-medium hover:bg-primary-600 transition"
+                  >
+                    quản lý video
+                  </Link>
+                </>
               ) : (
-                <button className="btn bg-primary-500 text-white rounded-xl text-sm font-medium hover:bg-neutral-800 transition">
+                <button className="btn bg-primary-500 text-white rounded-xl text-sm font-medium hover:bg-primary-600 transition">
                   Đăng ký
                 </button>
               )}
@@ -169,7 +196,7 @@ export default function Channel() {
           </div>
         </div>
 
-        {/* 3. Thanh Điều Hướng Tabs (Chỉ giữ Video) */}
+        {/* 3. Thanh Điều Hướng Tabs */}
         <div className="flex items-center border-b border-neutral-200 mt-8 font-medium text-sm">
           <button className="pb-3 px-4 border-b-2 border-neutral-900 text-neutral-900">
             Video
@@ -178,24 +205,49 @@ export default function Channel() {
 
         {/* 4. Danh sách Video */}
         <div className="mt-6 pb-8">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-y-10 gap-x-6">
-            {MOCK_VIDEOS.map((video) => (
-              <VideoCard
-                key={video.id}
-                thumbnail={video.thumbnail}
-                duration={video.duration}
-                // Tận dụng thông tin user thực tế truyền vào cho VideoCard
-                avatar={
-                  user.avatar ||
-                  `https://ui-avatars.com/api/?name=${user.fullName}&background=random`
-                }
-                title={video.title}
-                channel={user.fullName}
-                views={video.views}
-                time={video.time}
-              />
-            ))}
-          </div>
+          {videosLoading && videos.length === 0 ? (
+            <div className="text-center py-12 text-neutral-400">
+              Đang tải video...
+            </div>
+          ) : videos.length === 0 ? (
+            <div className="text-center py-12 text-neutral-400">
+              Kênh này chưa có video nào.
+            </div>
+          ) : (
+            <>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-y-10 gap-x-6">
+                {videos.map((video) => (
+                  <VideoCard
+                    videoId={video.id}
+                    key={video.id}
+                    thumbnail={video.thumbnail}
+                    duration={video.duration}
+                    avatar={
+                      user.avatar ||
+                      `https://ui-avatars.com/api/?name=${user.fullName}&background=random`
+                    }
+                    title={video.title}
+                    channel={user.fullName}
+                    views=""
+                    createdAt={video.createdAt}
+                  />
+                ))}
+              </div>
+
+              {/* Load more */}
+              {!isLastPage && (
+                <div className="flex justify-center mt-8">
+                  <button
+                    onClick={handleLoadMore}
+                    disabled={videosLoading}
+                    className="btn bg-primary-500 text-white btn-sm rounded-xl px-6"
+                  >
+                    {videosLoading ? "Đang tải..." : "Xem thêm"}
+                  </button>
+                </div>
+              )}
+            </>
+          )}
         </div>
       </div>
     </main>

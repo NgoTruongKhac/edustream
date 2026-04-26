@@ -21,4 +21,21 @@ public class StringUtil {
                 .replaceAll("[^a-z0-0]", "") // Chỉ giữ lại chữ cái và số
                 .trim();
     }
+
+    public static String generateSlug(String input) {
+        if (input == null || input.isEmpty()) {
+            return "";
+        }
+
+        String temp = input.replace("đ", "d").replace("Đ", "D");
+        String normalized = Normalizer.normalize(temp, Normalizer.Form.NFD);
+        Pattern pattern = Pattern.compile("\\p{InCombiningDiacriticalMarks}+");
+        String slug = pattern.matcher(normalized).replaceAll("");
+
+        return slug.toLowerCase()
+                .trim()
+                .replaceAll("[^a-z0-9\\s-]", "")
+                .replaceAll("\\s+", "-");
+    }
+
 }

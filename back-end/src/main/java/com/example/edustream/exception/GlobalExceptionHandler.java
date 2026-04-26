@@ -72,6 +72,12 @@ public class GlobalExceptionHandler {
 
 		return ResponseEntity.status(400).body(response);
 	}
+	@ExceptionHandler(exception = UserNotFoundException.class)
+	public ResponseEntity<?> handleUserNotFoundException(UserNotFoundException ex) {
+		var response = responseMessage(400, "bad request", ex.getMessage());
+
+		return ResponseEntity.status(400).body(response);
+	}
 
 	private Map<String, Object> responseMessage(int status, String error, String message) {
 

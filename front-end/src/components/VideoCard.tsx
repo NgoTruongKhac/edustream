@@ -1,24 +1,43 @@
+import { Link } from "react-router-dom";
+
 interface VideoCardProps {
+  videoId: number;
   thumbnail: string;
-  duration: string;
+  duration: number;
   avatar: string;
   title: string;
   channel: string;
   views: string;
-  time: string;
+  createdAt: string;
 }
 
+// --- Helpers ---
+const formatDuration = (seconds: number): string => {
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  return `${m}:${String(s).padStart(2, "0")}`;
+};
+
+const formatDate = (isoString: string): string => {
+  return new Date(isoString).toLocaleDateString("vi-VN", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+};
+
 export default function VideoCard({
+  videoId,
   thumbnail,
   duration,
   avatar,
   title,
   channel,
   views,
-  time,
+  createdAt,
 }: VideoCardProps) {
   return (
-    <div className="flex flex-col gap-3 cursor-pointer group">
+    <Link to={`/watch/${videoId}`} className="flex flex-col gap-3 group">
       {/* Thumbnail & Duration */}
       <div className="relative w-full aspect-video rounded-xl overflow-hidden bg-neutral-200">
         <img
@@ -27,7 +46,7 @@ export default function VideoCard({
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
         />
         <div className="absolute bottom-2 right-2 bg-black/80 text-white text-xs font-medium px-2 py-1 rounded-md">
-          {duration}
+          {formatDuration(duration)}
         </div>
       </div>
 
@@ -53,10 +72,10 @@ export default function VideoCard({
             {channel}
           </p>
           <p className="text-sm text-neutral-500">
-            {views} • {time}
+            {views} • {formatDate(createdAt)}
           </p>
         </div>
       </div>
-    </div>
+    </Link>
   );
 }

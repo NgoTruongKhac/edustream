@@ -14,6 +14,7 @@ import Channel from "./pages/Channel";
 import EditProfile from "./pages/EditProfile";
 import { Toaster } from "react-hot-toast";
 import ManageVideos from "./pages/ManageVideos";
+import VideoWatch from "./pages/VideoWatch";
 
 function App() {
   const { checkAuthStatus } = useAuthStore();
@@ -39,8 +40,10 @@ function App() {
           <Route path="/:username" element={<Channel />} />
           <Route path="/edit-profile" element={<EditProfile />} />
           <Route path="/manage-videos" element={<ManageVideos />} />
+          <Route path="/watch/:videoId" element={<VideoWatch />} />
         </Route>
         <Route path="/login" element={<Login />} />
+
         <Route path="/register" element={<Register />} />
         <Route path="/oauth2/redirect" element={<AuthGoogle />} />
         <Route path="*" element={<NotFound />} />

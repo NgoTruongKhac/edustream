@@ -218,9 +218,9 @@ export default function EditProfile() {
               </div>
 
               <div className="flex flex-col sm:flex-row items-center gap-8">
-                <div className="relative w-28 h-28 group">
+                <div className="relative w-32 h-32 group">
                   <div className="avatar">
-                    <div className="w-28 rounded-full ring ring-primary ring-offset-base-100 ring-offset-4 overflow-hidden">
+                    <div className="w-32 rounded-full ring ring-primary ring-offset-base-100 ring-offset-4 overflow-hidden">
                       <img src={user.avatar} alt="User Avatar" />
                     </div>
                   </div>

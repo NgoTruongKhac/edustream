@@ -2,7 +2,6 @@ package com.example.edustream.service;
 
 import com.example.edustream.dto.request.ChangeEmailRequestDto;
 import com.example.edustream.dto.request.OtpRequestDto;
-import com.example.edustream.dto.request.RegisterRequestDto;
 import com.example.edustream.dto.request.UserUpdateRequestDto;
 import com.example.edustream.dto.response.UserResponseDto;
 import com.example.edustream.entity.User;
@@ -58,7 +57,7 @@ public class UserService {
     }
 
     public UserResponseDto getUserByUsername(String username) {
-        User user = userRepository.findByUsername(username).orElseThrow(() -> new RuntimeException("username not found"));
+        User user = userRepository.findByUsername(username).orElseThrow(() -> new UserNotFoundException("username not found"));
 
         return userMapper.toUserResponseDto(user);
     }
