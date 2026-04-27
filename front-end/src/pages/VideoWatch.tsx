@@ -1,15 +1,10 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { getVideoById } from "@/api/videoApi";
-import {
-  ThumbsUp,
-  ThumbsDown,
-  Share2,
-  Bookmark,
-  MoreHorizontal,
-  Eye,
-  Calendar,
-} from "lucide-react";
+import Comment from "@/components/Comment";
+import { ThumbsUp, Share2, Bookmark, Eye } from "lucide-react";
+import SubscribeButton from "@/components/SubscribeButton";
+import { useAuthStore } from "@/stores/useAuthStore";
 
 // --- Types ---
 interface VideoResponseDto {
@@ -107,6 +102,8 @@ export default function VideoWatch() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [descExpanded, setDescExpanded] = useState(false);
+
+  const currentUser = useAuthStore((state) => state.user);
 
   useEffect(() => {
     if (!videoId) {
@@ -212,11 +209,13 @@ export default function VideoWatch() {
                     </p>
                   </div>
                 </Link>
-
-                {/* Subscribe (mobile nằm sát phải, desktop nằm gần channel) */}
-                <button className="btn btn-sm bg-primary-500 hover:bg-primary-600 text-white border-none rounded-xl px-4 shrink-0">
-                  Đăng ký
-                </button>
+                {currentUser?.username === video.username ? (
+                  <button className="btn btn-sm bg-primary-500 text-white hover:bg-primary-600 rounded-xl">
+                    quản lý video
+                  </button>
+                ) : (
+                  <SubscribeButton size="sm" username={video.username} />
+                )}
               </div>
 
               {/* RIGHT: Actions */}
@@ -261,6 +260,7 @@ export default function VideoWatch() {
                 {descExpanded ? "Ẩn bớt" : "Xem thêm"}
               </p>
             </div>
+            <Comment videoId={Number(videoId)} />
           </div>
 
           {/* ===== RIGHT: Related Videos ===== */}

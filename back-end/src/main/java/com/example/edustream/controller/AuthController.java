@@ -7,7 +7,6 @@ import com.example.edustream.dto.request.LoginRequestDto;
 import com.example.edustream.dto.request.OtpRequestDto;
 import com.example.edustream.dto.request.RegisterRequestDto;
 import com.example.edustream.dto.response.TokenResponseDto;
-import com.example.edustream.dto.response.UserResponseDto;
 import com.example.edustream.service.AuthService;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -31,13 +30,8 @@ public class AuthController {
 	@PostMapping("/register")
 	public ResponseEntity<?> register(@Valid @RequestBody RegisterRequestDto registerRequestDto) {
 
-		Map<String, String> response = new HashMap<>();
-
 		authService.register(registerRequestDto);
-
-		response.put("message", "otp send to your emal");
-
-		return ResponseEntity.status(200).body(response);
+		return ResponseEntity.ok(Map.of("message", "otp sent to your email"));
 
 	}
 

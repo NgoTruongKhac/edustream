@@ -4,6 +4,7 @@ import { getUserByUsername } from "@/api/userApi";
 import { getVideosByUsername } from "@/api/videoApi";
 import VideoCard from "@/components/VideoCard";
 import { useAuthStore } from "@/stores/useAuthStore";
+import SubscribeButton from "@/components/SubscribeButton";
 
 // --- Types ---
 interface VideoResponseDto {
@@ -171,11 +172,11 @@ export default function Channel() {
             )}
 
             <div className="mt-4 flex gap-2">
-              {currentUser ? (
+              {currentUser?.username === user.username ? (
                 <>
                   <Link
                     to={"/edit-profile"}
-                    className="btn bg-primary-500 text-white rounded-xl text-sm font-medium hover:bg-primary-600 transition"
+                    className="btn bg-primary-500 text-white rounded-xl text-sm font-medium hover:bg-primary-600 transition mr-3"
                   >
                     chỉnh sửa hồ sơ
                   </Link>
@@ -188,9 +189,7 @@ export default function Channel() {
                   </Link>
                 </>
               ) : (
-                <button className="btn bg-primary-500 text-white rounded-xl text-sm font-medium hover:bg-primary-600 transition">
-                  Đăng ký
-                </button>
+                <SubscribeButton size="md" username={user.username} />
               )}
             </div>
           </div>

@@ -15,6 +15,8 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.Map;
+
 
 @RestController
 @RequestMapping("/api/v1/users")
@@ -83,7 +85,7 @@ public class UserController {
         userService.changeEmail(changeEmailRequestDto);
 
         // Trả về JSON: {"message": "otp sent to your email"}
-        return ResponseEntity.ok(java.util.Map.of("message", "otp sent to your email"));
+        return ResponseEntity.ok(Map.of("message", "otp sent to your email"));
     }
 
     @PostMapping("/verify-change-email")
