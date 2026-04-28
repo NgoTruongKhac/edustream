@@ -78,6 +78,24 @@ public class GlobalExceptionHandler {
 
 		return ResponseEntity.status(400).body(response);
 	}
+	@ExceptionHandler(exception = PlaylistNameAlreadyExistsException.class)
+	public ResponseEntity<?> handlePlaylistNameAlreadyExistsException(PlaylistNameAlreadyExistsException ex) {
+		var response = responseMessage(400, "bad request", ex.getMessage());
+
+		return ResponseEntity.status(400).body(response);
+	}
+	@ExceptionHandler(exception = VideoAlreadyExistInPlaylistException.class)
+	public ResponseEntity<?> handleVideoAlreadyExistInPlaylistException(VideoAlreadyExistInPlaylistException ex) {
+		var response = responseMessage(400, "bad request", ex.getMessage());
+
+		return ResponseEntity.status(400).body(response);
+	}
+	@ExceptionHandler(exception = ResourceNotFoundException.class)
+	public ResponseEntity<?> handleResourceNotFoundException(ResourceNotFoundException ex) {
+		var response = responseMessage(400, "bad request", ex.getMessage());
+
+		return ResponseEntity.status(400).body(response);
+	}
 
 	private Map<String, Object> responseMessage(int status, String error, String message) {
 

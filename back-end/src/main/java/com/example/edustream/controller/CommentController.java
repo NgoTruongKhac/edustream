@@ -57,7 +57,6 @@ public class CommentController {
             @PathVariable Long videoId,
             @RequestParam(defaultValue = "0") int page) {
 
-        // Không cần truyền userPrincipal vì việc xem bình luận thường là public (ai xem cũng được)
         PageResponse<CommentResponseDto> response = commentService.getComments(videoId, page);
 
         return ResponseEntity.ok(response);

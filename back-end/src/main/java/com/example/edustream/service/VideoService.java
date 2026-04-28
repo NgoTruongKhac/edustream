@@ -8,6 +8,7 @@ import com.example.edustream.entity.Hashtag;
 import com.example.edustream.entity.User;
 import com.example.edustream.entity.UserPrincipal;
 import com.example.edustream.entity.Video;
+import com.example.edustream.exception.ResourceNotFoundException;
 import com.example.edustream.mapper.VideoMapper;
 import com.example.edustream.repository.CategoryRepository;
 import com.example.edustream.repository.HashtagRepository;
@@ -100,7 +101,7 @@ public class VideoService {
     }
     public VideoResponseDto getVideoById(long videoId) {
         Video video = videoRepository.findById(videoId)
-                .orElseThrow(() -> new RuntimeException("Video không tồn tại với ID: " + videoId));
+                .orElseThrow(() -> new ResourceNotFoundException("Video không tồn tại với ID: " + videoId));
 
         return videoMapper.toVideoResponseDto(video);
     }

@@ -5,6 +5,7 @@ import Comment from "@/components/Comment";
 import { ThumbsUp, Share2, Bookmark, Eye } from "lucide-react";
 import SubscribeButton from "@/components/SubscribeButton";
 import { useAuthStore } from "@/stores/useAuthStore";
+import ModalPlaylist from "@/components/ModalPlaylist";
 
 // --- Types ---
 interface VideoResponseDto {
@@ -104,6 +105,7 @@ export default function VideoWatch() {
   const [descExpanded, setDescExpanded] = useState(false);
 
   const currentUser = useAuthStore((state) => state.user);
+  const [showModalPlaylist, setShowModalPlaylist] = useState(false);
 
   useEffect(() => {
     if (!videoId) {
@@ -232,7 +234,16 @@ export default function VideoWatch() {
                   <span className="text-sm">Chia sẻ</span>
                 </button>
 
-                <button className="btn btn-sm btn-ghost border border-neutral-200 rounded-full gap-1.5 px-4 shrink-0">
+                <button
+                  onClick={() =>
+                    (
+                      document.getElementById(
+                        "modal_playlist",
+                      ) as HTMLDialogElement
+                    )?.showModal()
+                  }
+                  className="btn btn-sm btn-ghost border border-neutral-200 rounded-full gap-1.5 px-4 shrink-0"
+                >
                   <Bookmark size={16} />
                   <span className="text-sm">Lưu</span>
                 </button>
@@ -310,6 +321,10 @@ export default function VideoWatch() {
           </div>
         </div>
       </div>
+
+      <dialog id="modal_playlist" className="modal">
+        <ModalPlaylist />
+      </dialog>
     </div>
   );
 }

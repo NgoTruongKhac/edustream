@@ -15,6 +15,7 @@ import EditProfile from "./pages/EditProfile";
 import { Toaster } from "react-hot-toast";
 import ManageVideos from "./pages/ManageVideos";
 import VideoWatch from "./pages/VideoWatch";
+import PlaylistVideos from "./pages/PlaylistVideos";
 
 function App() {
   const { checkAuthStatus } = useAuthStore();
@@ -35,6 +36,7 @@ function App() {
         <Route element={<MainLayout />}>
           <Route path="/" element={<Home />} />
           <Route path="/playlist" element={<PlayList />} />
+          <Route path="/playlist/:playlistVideo" element={<PlaylistVideos />} />
           <Route path="/subscriptions" element={<Subscription />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/:username" element={<Channel />} />
