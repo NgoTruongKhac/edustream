@@ -70,7 +70,7 @@ export default function PlaylistVideos() {
   /* ---- Loading ---- */
   if (loading) {
     return (
-      <div className="flex-1 bg-white min-h-screen">
+      <div className="flex-1 bg-base-100 min-h-screen">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
           <div className="h-6 bg-neutral-200 rounded w-48 mb-6 animate-pulse" />
           <div className="flex flex-col gap-4">
@@ -108,8 +108,8 @@ export default function PlaylistVideos() {
   };
 
   return (
-    <div className="flex-1 bg-white min-h-screen">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
+    <div className="flex-1 bg-base-100 min-h-screen">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 py-5">
         {/* Header */}
         <button
           onClick={handleBack}
@@ -119,7 +119,7 @@ export default function PlaylistVideos() {
           <span>Quay lại</span>
         </button>
         <div className="flex items-center gap-2 mb-6">
-          <h1 className="text-lg sm:text-xl font-bold text-neutral-900 truncate">
+          <h1 className="text-lg sm:text-xl font-bold text-base-content truncate">
             {playlistName}
           </h1>
           <span className="text-sm text-neutral-400 shrink-0">
@@ -141,7 +141,7 @@ export default function PlaylistVideos() {
                 <Link
                   key={`${item.playlistId}-${v.id}-${index}`}
                   to={`/watch/${v.id}`}
-                  className="flex gap-3 sm:gap-4 group p-2 rounded-xl hover:bg-neutral-50 transition-colors"
+                  className="flex gap-3 sm:gap-4 group p-2 rounded-xl hover:bg-base-200 transition-colors"
                 >
                   {/* Index */}
                   <div className="hidden sm:flex items-center justify-center w-6 shrink-0 text-sm text-neutral-300 font-medium group-hover:text-primary transition-colors">
@@ -163,7 +163,7 @@ export default function PlaylistVideos() {
                     )}
                     {/* Duration */}
                     {v.duration > 0 && (
-                      <span className="absolute bottom-1 right-1 bg-black/80 text-white text-[10px] font-medium px-1.5 py-0.5 rounded flex items-center gap-1">
+                      <span className="absolute bottom-1 right-1 bg-black/80 text-base-content text-[10px] font-medium px-1.5 py-0.5 rounded flex items-center gap-1">
                         <Clock size={9} />
                         {formatDuration(v.duration)}
                       </span>
@@ -172,7 +172,7 @@ export default function PlaylistVideos() {
 
                   {/* Info */}
                   <div className="flex flex-col justify-center flex-1 min-w-0 gap-1">
-                    <h3 className="text-sm font-semibold text-neutral-900 line-clamp-2 leading-snug group-hover:text-primary transition-colors">
+                    <h3 className="text-sm font-semibold text-base-content line-clamp-2 leading-snug group-hover:text-primary transition-colors">
                       {v.title}
                     </h3>
 
@@ -191,12 +191,12 @@ export default function PlaylistVideos() {
                           className="w-full h-full object-cover"
                         />
                       </div>
-                      <span className="text-xs text-neutral-500 group-hover/ch:text-primary transition-colors truncate">
+                      <span className="text-xs text-base-content group-hover/ch:text-primary transition-colors truncate">
                         {v.fullName}
                       </span>
                     </Link>
 
-                    <p className="text-xs text-neutral-400">
+                    <p className="text-xs text-base-content">
                       {formatDate(v.createdAt)}
                     </p>
                   </div>

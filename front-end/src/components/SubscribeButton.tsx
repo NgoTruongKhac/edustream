@@ -59,7 +59,7 @@ const SubscribeButton = ({ username, size = "md" }: Props) => {
   // Nếu đang fetch trạng thái ban đầu, hiện khung xương (skeleton) hoặc ẩn để tránh nháy chữ
   if (isLoading) {
     return (
-      <div className="w-24 h-9 bg-gray-200 animate-pulse rounded-xl"></div>
+      <div className="w-24 h-9 bg-base-100 animate-pulse rounded-xl"></div>
     );
   }
 
@@ -67,18 +67,15 @@ const SubscribeButton = ({ username, size = "md" }: Props) => {
     <button
       onClick={handleSubscribeClick}
       disabled={isActionLoading}
-      className={`btn rounded-xl text-sm font-medium transition disabled:opacity-70 
-        ${
-          isSubscribed
-            ? "bg-gray-200 text-gray-800 hover:bg-gray-300" // Style khi đã đăng ký (Hủy đăng ký)
-            : "bg-primary-500 text-white hover:bg-primary-600" // Style khi chưa đăng ký
-        }
-      `}
+      className={`btn rounded-xl text-sm font-bold transition-all
+    ${isSubscribed ? "btn-neutral border-none" : "btn-primary"}
+    ${isActionLoading ? "loading" : ""} 
+  `}
     >
       {isActionLoading
         ? "Đang xử lý..."
         : isSubscribed
-          ? "Huỷ đăng ký"
+          ? "Đã đăng ký"
           : "Đăng ký"}
     </button>
   );

@@ -39,41 +39,42 @@ export default function VideoCard({
   return (
     <Link to={`/watch/${videoId}`} className="flex flex-col gap-3 group">
       {/* Thumbnail & Duration */}
-      <div className="relative w-full aspect-video rounded-xl overflow-hidden bg-neutral-200">
+      <div className="relative w-full aspect-video rounded-xl overflow-hidden bg-base-300">
         <img
           src={thumbnail}
           alt={title}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
         />
-        <div className="absolute bottom-2 right-2 bg-black/80 text-white text-xs font-medium px-2 py-1 rounded-md">
+        {/* Sử dụng neutral để badge luôn nổi bật trên mọi loại ảnh thumbnail */}
+        <div className="absolute bottom-2 right-2 bg-neutral/90 text-neutral-content text-xs font-bold px-2 py-1 rounded-lg shadow-sm">
           {formatDuration(duration)}
         </div>
       </div>
 
       {/* Info */}
-      <div className="flex gap-3 pr-4">
-        {/* Avatar */}
+      <div className="flex gap-3 pr-2">
+        {/* Avatar - Sử dụng class avatar của daisyUI để đồng bộ */}
         <div className="flex-shrink-0 mt-1">
-          <div className="w-9 h-9 rounded-full overflow-hidden">
-            <img
-              src={avatar}
-              alt={channel}
-              className="w-full h-full object-cover"
-            />
+          <div className="avatar">
+            <div className="w-10 h-10 rounded-full">
+              <img src={avatar} alt={channel} />
+            </div>
           </div>
         </div>
 
         {/* Text */}
         <div className="flex flex-col">
-          <h3 className="text-base font-semibold text-neutral-900 line-clamp-2 leading-tight group-hover:text-blue-600 transition-colors">
+          <h3 className="text-base font-bold text-base-content line-clamp-2 leading-tight group-hover:text-primary transition-colors">
             {title}
           </h3>
-          <p className="text-sm text-neutral-500 mt-1 hover:text-neutral-700">
-            {channel}
-          </p>
-          <p className="text-sm text-neutral-500">
-            {views} • {formatDate(createdAt)}
-          </p>
+          <div className="mt-1">
+            <p className="text-sm text-base-content/70 hover:text-base-content transition-colors">
+              {channel}
+            </p>
+            <p className="text-sm text-base-content/60">
+              {views} • {formatDate(createdAt)}
+            </p>
+          </div>
         </div>
       </div>
     </Link>

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { User, Mail, Lock } from "lucide-react";
+import { User, Mail, Lock, ArrowLeft } from "lucide-react";
 import logo_full from "@/assets/logo/logo_full.png";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -10,6 +10,7 @@ import z from "zod";
 import { OTPModal } from "@/components/OTPModal";
 import Cookies from "js-cookie";
 import { verifyOtp } from "@/api/authApi";
+import { Link } from "react-router-dom";
 
 type LoginFormData = z.infer<typeof registerSchema>;
 
@@ -44,22 +45,29 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-screen flex bg-neutral-50">
+    <div className="min-h-screen flex bg-base">
       {/* --- CỘT TRÁI: FORM ĐĂNG KÝ --- */}
-      <div className="w-full lg:w-1/2 flex flex-col justify-center px-6 sm:px-12 md:px-20 lg:px-24 bg-white shadow-soft lg:shadow-none z-10 rounded-t-3xl mt-12 lg:mt-0 lg:rounded-none">
+      <div className="w-full lg:w-1/2 flex flex-col justify-center px-6 sm:px-12 md:px-20 lg:px-24 bg-base-100  lg:shadow-none z-10 rounded-t-3xl mt-12 lg:mt-0 lg:rounded-none">
         {/* Logo hiển thị trên Mobile */}
         <div className="lg:hidden flex justify-center mb-8">
           <img src={logo_full} alt="logo" className="h-10 w-auto" />
         </div>
+        <Link
+          to={"/"}
+          className="inline-flex items-center gap-2 text-sm text-base-content/70 hover:text-primary transition-colors mb-3 mt-1"
+        >
+          <ArrowLeft size={18} className="opacity-80" />
+          <span>Trang chủ</span>
+        </Link>
 
-        <div className="w-full max-w-sm mx-auto lg:mx-0 pl-10 pr-10  pt-10 pb-10 border rounded-2xl">
-          <h2 className="text-3xl font-bold text-neutral-900 mb-2">Đăng Ký</h2>
+        <div className="w-full max-w-sm mx-auto lg:mx-0 pl-10 pr-10  pt-10 pb-10 border border-primary rounded-2xl">
+          <h2 className="text-3xl font-bold text-base-content mb-2">Đăng Ký</h2>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             {/* Input Full Name */}
             <div className="form-control">
               <label className="label py-1">
-                <span className="label-text font-medium text-neutral-700">
+                <span className="label-text font-medium text-base-content">
                   Họ và tên
                 </span>
               </label>
@@ -72,7 +80,7 @@ export default function Register() {
                   type="text"
                   {...register("fullName")}
                   placeholder="Nguyễn Văn A"
-                  className="input w-full pl-11 bg-neutral-50 border-neutral-200 text-neutral-800 placeholder:text-neutral-400 focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary-100 rounded-xl transition-all"
+                  className="input w-full pl-11 bg-base-100 border-base text-base-content placeholder:text-base-50 focus:bg-base focus:border-primary focus:ring-1 focus:ring-primary-100 rounded-xl transition-all"
                 />
                 {errors.fullName && (
                   <p className="text-red-500 text-sm p-0 m-0">
@@ -85,12 +93,12 @@ export default function Register() {
             {/* Input Email */}
             <div className="form-control">
               <label className="label py-1">
-                <span className="label-text font-medium text-neutral-700">
+                <span className="label-text font-medium text-base-content">
                   Email
                 </span>
               </label>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-neutral-400">
+                <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-base">
                   <Mail className="w-5 h-5" />
                 </div>
                 <input
@@ -98,7 +106,7 @@ export default function Register() {
                   {...register("email")}
                   type="email"
                   placeholder="ví dụ: tenban@email.com"
-                  className="input w-full pl-11 bg-neutral-50 border-neutral-200 text-neutral-800 placeholder:text-neutral-400 focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary-100 rounded-xl transition-all"
+                  className="input w-full pl-11 bg-base-100 border-base text-base-content placeholder:text-base focus:bg-base focus:border-primary focus:ring-1 focus:ring-primary-100 rounded-xl transition-all"
                 />
                 {errors.email && (
                   <p className="text-red-500 text-sm p-0 m-0">
@@ -111,12 +119,12 @@ export default function Register() {
             {/* Input Password */}
             <div className="form-control">
               <label className="label py-1">
-                <span className="label-text font-medium text-neutral-700">
+                <span className="label-text font-medium text-base-content">
                   Mật khẩu
                 </span>
               </label>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-neutral-400">
+                <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-base">
                   <Lock className="w-5 h-5" />
                 </div>
                 <input
@@ -124,7 +132,7 @@ export default function Register() {
                   type="password"
                   {...register("password")}
                   placeholder="Tạo mật khẩu mạnh"
-                  className="input w-full pl-11 pr-11 bg-neutral-50 border-neutral-200 text-neutral-800 focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary-100 rounded-xl transition-all"
+                  className="input w-full pl-11 pr-11 bg-base-100 border-base text-base-content focus:bg-base-100 focus:border-primary focus:ring-1 focus:ring-primary-100 rounded-xl transition-all"
                 />
                 {errors.password && (
                   <p className="text-red-500 text-sm p-0 m-0">
@@ -136,7 +144,7 @@ export default function Register() {
             {/* Nút Đăng ký */}
             <button
               type="submit"
-              className="btn w-full bg-primary text-white border-none hover:bg-primary-600 rounded-xl mt-4 text-base font-medium"
+              className="btn w-full bg-primary text-base-content border-none hover:bg-primary/90 rounded-xl mt-4 text-base font-medium"
             >
               {isLoading ? (
                 <span className="loading loading-spinner loading-sm"></span>
@@ -147,7 +155,7 @@ export default function Register() {
           </form>
 
           {/* Chuyển hướng Đăng nhập */}
-          <p className="text-center text-neutral-600 mt-8">
+          <p className="text-center text-base-content mt-8">
             Đã có tài khoản?{" "}
             <a
               href="/login"

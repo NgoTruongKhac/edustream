@@ -68,10 +68,10 @@ export default function Home() {
           {CATEGORIES.map((category, index) => (
             <button
               key={index}
-              className={`whitespace-nowrap btn cursor-pointer rounded-lg text-sm font-medium transition-colors ${
+              className={`whitespace-nowrap btn btn-sm h-9 rounded-lg font-medium transition-all border-none ${
                 index === 1 // Demo: Set cứng "Toán học"
-                  ? "bg-primary-500 text-white"
-                  : "bg-neutral-200/60 hover:bg-neutral-200 text-neutral-800"
+                  ? "btn-primary text-primary-content shadow-sm"
+                  : "bg-base-200 hover:bg-base-300 text-base-content/80 hover:text-base-content"
               }`}
             >
               {category}
@@ -80,7 +80,7 @@ export default function Home() {
         </div>
       </div>
 
-      <h2 className="text-xl sm:text-2xl font-bold text-neutral-900 mt-4 mb-6">
+      <h2 className="text-xl sm:text-2xl font-bold mt-4 mb-6">
         Video phổ biến
       </h2>
 

@@ -1,5 +1,6 @@
 package com.example.edustream.mapper;
 
+import com.example.edustream.dto.request.VideoUploadRequestDto;
 import com.example.edustream.dto.request.VideoYoutubeRequestDto;
 import com.example.edustream.dto.response.VideoResponseDto;
 import com.example.edustream.entity.Video;
@@ -13,8 +14,15 @@ public interface VideoMapper {
     // Map từ Request DTO sang Entity
     @Mapping(target = "id", ignore = true) // Bỏ qua id vì tự tăng
     @Mapping(target = "user", ignore = true) // Sẽ được set thủ công từ UserPrincipal
-    @Mapping(target = "videoType", constant = "YOUTUBE") // Mặc định type là YOUTUBE
+    @Mapping(target = "videoType", constant = "YOUTUBE")
+    @Mapping(target = "videoStatus", constant = "PUBLISHED")
     Video toVideo(VideoYoutubeRequestDto request);
+
+    @Mapping(target = "id", ignore = true) // Bỏ qua id vì tự tăng
+    @Mapping(target = "user", ignore = true) // Sẽ được set thủ công từ UserPrincipal
+    @Mapping(target = "videoType", constant = "UPLOAD")
+    @Mapping(target = "videoStatus", constant = "PENDING")
+    Video toVideo(VideoUploadRequestDto request);
 
     // Map từ Entity sang Response DTO
     @Mapping(source = "user.fullName", target = "fullName")

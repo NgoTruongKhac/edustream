@@ -1,5 +1,6 @@
 package com.example.edustream.entity;
 
+import com.example.edustream.entity.enums.VideoStatus;
 import com.example.edustream.entity.enums.VideoType;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -39,4 +40,9 @@ public class Video extends AbstractEntity<Video> {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
+
+    @Column(name = "video_status")
+    @Enumerated(EnumType.STRING)
+    private VideoStatus videoStatus;
+
 }

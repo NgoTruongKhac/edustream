@@ -15,6 +15,7 @@ interface VideoResponseDto {
   description: string;
   duration: number;
   videoType: "YOUTUBE" | "UPLOAD";
+  videoUrl: string;
   videoYoutubeUrl: string;
   videoYoutubeId: string;
   fullName: string;
@@ -105,7 +106,6 @@ export default function VideoWatch() {
   const [descExpanded, setDescExpanded] = useState(false);
 
   const currentUser = useAuthStore((state) => state.user);
-  const [showModalPlaylist, setShowModalPlaylist] = useState(false);
 
   useEffect(() => {
     if (!videoId) {
@@ -136,7 +136,7 @@ export default function VideoWatch() {
   // --- Loading state ---
   if (loading) {
     return (
-      <div className="flex-1 flex items-center justify-center min-h-screen bg-white">
+      <div className="flex-1 flex items-center justify-center min-h-screen bg-base-100">
         <span className="loading loading-spinner loading-lg text-primary"></span>
       </div>
     );
@@ -145,7 +145,7 @@ export default function VideoWatch() {
   // --- Error / not found state ---
   if (error || !video) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center min-h-screen bg-white gap-3 text-neutral-500">
+      <div className="flex-1 flex flex-col items-center justify-center min-h-screen bg-base-100 gap-3 text-neutral-500">
         <Eye size={48} className="opacity-20" />
         <p className="text-lg font-medium">Không tìm thấy video này.</p>
       </div>
@@ -153,7 +153,7 @@ export default function VideoWatch() {
   }
 
   return (
-    <div className="flex-1 bg-white min-h-screen">
+    <div className="flex-1 bg-base-100 min-h-screen">
       <div className="max-w-[1480px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="flex flex-col lg:flex-row gap-6">
           {/* ===== LEFT: Video Player + Info ===== */}
@@ -169,17 +169,20 @@ export default function VideoWatch() {
                   allowFullScreen
                 />
               ) : (
-                <div className="w-full h-full flex flex-col items-center justify-center text-white gap-3 bg-neutral-900">
-                  <Eye size={40} className="opacity-40" />
-                  <p className="text-sm text-neutral-400">
-                    Video đang được xử lý hoặc chưa hỗ trợ phát trực tiếp.
-                  </p>
-                </div>
+                <video
+                  src={video.videoUrl}
+                  controls
+                  autoPlay
+                  className="w-full h-full"
+                  poster={video.thumbnail || undefined}
+                >
+                  Trình duyệt của bạn không hỗ trợ phát video.
+                </video>
               )}
             </div>
 
             {/* --- Title --- */}
-            <h1 className="text-lg sm:text-xl font-bold text-neutral-900 mt-4 leading-snug">
+            <h1 className="text-lg sm:text-xl font-bold text-base-content mt-4 leading-snug">
               {video.title}
             </h1>
 
@@ -203,7 +206,7 @@ export default function VideoWatch() {
                   </div>
 
                   <div className="min-w-0">
-                    <p className="font-semibold text-neutral-900 text-sm truncate">
+                    <p className="font-semibold text-base-content text-sm truncate">
                       {video.fullName}
                     </p>
                     <p className="text-xs text-neutral-500 mt-0.5">
@@ -212,7 +215,7 @@ export default function VideoWatch() {
                   </div>
                 </Link>
                 {currentUser?.username === video.username ? (
-                  <button className="btn btn-sm bg-primary-500 text-white hover:bg-primary-600 rounded-xl">
+                  <button className="btn btn-sm bg-primary text-primary-content hover:bg-primary rounded-xl">
                     quản lý video
                   </button>
                 ) : (
@@ -249,25 +252,28 @@ export default function VideoWatch() {
                 </button>
               </div>
             </div>
-
             {/* --- Description Box --- */}
             <div
-              className="mt-4 bg-neutral-100 hover:bg-neutral-200/70 transition-colors rounded-xl p-4 cursor-pointer"
+              className="mt-4 bg-base-200 hover:bg-base-300 transition-colors rounded-xl p-4 cursor-pointer"
               onClick={() => setDescExpanded((prev) => !prev)}
             >
               <div
-                className={`text-sm text-neutral-700 whitespace-pre-line ${
+                className={`text-sm text-base-content/80 whitespace-pre-line ${
                   descExpanded ? "" : "line-clamp-2"
                 }`}
               >
                 Video được đăng tải bởi{" "}
-                <span className="font-semibold">{video.fullName}</span>.{"\n"}
+                <span className="font-semibold text-base-content">
+                  {video.fullName}
+                </span>
+                .{"\n"}
                 Ngày đăng tải:{" "}
-                <span className="font-semibold">
+                <span className="font-semibold text-base-content">
                   {formatDate(video.createdAt)}
                 </span>
               </div>
-              <p className="text-xs font-semibold text-neutral-800 mt-2">
+
+              <p className="text-xs font-bold text-primary mt-2 uppercase tracking-wide">
                 {descExpanded ? "Ẩn bớt" : "Xem thêm"}
               </p>
             </div>
@@ -276,7 +282,7 @@ export default function VideoWatch() {
 
           {/* ===== RIGHT: Related Videos ===== */}
           <div className="w-full lg:w-[380px] xl:w-[420px] shrink-0">
-            <h2 className="text-base font-semibold text-neutral-900 mb-4">
+            <h2 className="text-base font-semibold text-base-content mb-4">
               Video liên quan
             </h2>
             <div className="flex flex-col gap-3">
@@ -289,13 +295,14 @@ export default function VideoWatch() {
                   }
                 >
                   {/* Thumbnail */}
-                  <div className="relative w-40 aspect-video rounded-lg overflow-hidden bg-neutral-200 shrink-0">
+                  <div className="relative w-40 aspect-video rounded-lg overflow-hidden bg-base-300 shrink-0">
                     <img
                       src={v.thumbnail}
                       alt={v.title}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     />
-                    <span className="absolute bottom-1 right-1 bg-black/80 text-white text-[10px] font-medium px-1.5 py-0.5 rounded">
+                    {/* Badge thời lượng - Dùng neutral để luôn tương phản tốt trên ảnh */}
+                    <span className="absolute bottom-1 right-1 bg-neutral/90 text-neutral-content text-[10px] font-bold px-1.5 py-0.5 rounded shadow-sm">
                       {Math.floor(v.duration / 60)}:
                       {String(v.duration % 60).padStart(2, "0")}
                     </span>
@@ -303,12 +310,17 @@ export default function VideoWatch() {
 
                   {/* Info */}
                   <div className="flex flex-col justify-start flex-1 min-w-0 pt-0.5">
-                    <h3 className="text-sm font-semibold text-neutral-900 line-clamp-2 leading-snug group-hover:text-blue-600 transition-colors">
+                    <h3 className="text-sm font-semibold text-base-content line-clamp-2 leading-snug group-hover:text-primary transition-colors">
                       {v.title}
                     </h3>
-                    <p className="text-xs text-neutral-500 mt-1">{v.channel}</p>
-                    <p className="text-xs text-neutral-400">
-                      {v.views} lượt xem •{" "}
+
+                    {/* Channel Name */}
+                    <p className="text-xs text-base-content/60 mt-1 hover:text-base-content transition-colors">
+                      {v.channel}
+                    </p>
+
+                    {/* Meta info: Views & Date */}
+                    <p className="text-xs text-base-content/50">
                       {new Date(v.createdAt).toLocaleDateString("vi-VN", {
                         month: "short",
                         year: "numeric",

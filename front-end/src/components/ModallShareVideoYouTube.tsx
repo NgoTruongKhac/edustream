@@ -230,7 +230,9 @@ export default function ModalShareVideoYouTube() {
           </h3>
         </div>
         <form method="dialog">
-          <button className="btn btn-ghost btn-sm btn-circle">✕</button>
+          <button className="btn btn-ghost btn-sm btn-circle text-base-content">
+            ✕
+          </button>
         </form>
       </div>
 
@@ -239,10 +241,12 @@ export default function ModalShareVideoYouTube() {
         {/* URL Input */}
         <div className="form-control gap-1.5">
           <label className="label py-0">
-            <span className="label-text font-medium text-sm">Link YouTube</span>
+            <span className="label-text font-medium text-sm text-base-content">
+              Link YouTube
+            </span>
           </label>
           <label
-            className={`input input-bordered flex items-center gap-2 w-full ${error ? "input-error" : ""}`}
+            className={`input input-bordered flex text-base-content items-center gap-2 w-full ${error ? "input-error" : ""}`}
           >
             <svg
               className="w-4 h-4 opacity-50 shrink-0"
@@ -286,7 +290,7 @@ export default function ModalShareVideoYouTube() {
             )}
 
             {/* Title */}
-            <div className="form-control gap-1.5">
+            <div className="form-control gap-1.5 text-base-content">
               <label className="label py-0">
                 <span className="label-text font-medium text-sm">Tiêu đề</span>
               </label>
@@ -299,7 +303,7 @@ export default function ModalShareVideoYouTube() {
             </div>
 
             {/* Duration */}
-            <div className="form-control gap-1.5">
+            <div className="form-control gap-1.5 text-base-content">
               <label className="label py-0">
                 <span className="label-text font-medium text-sm">
                   Thời lượng
@@ -329,7 +333,7 @@ export default function ModalShareVideoYouTube() {
             </div>
 
             {/* Description */}
-            <div className="form-control gap-1.5">
+            <div className="form-control gap-1.5 text-base-content">
               <label className="label py-0">
                 <span className="label-text font-medium text-sm">Mô tả</span>
               </label>
@@ -342,7 +346,7 @@ export default function ModalShareVideoYouTube() {
             </div>
 
             {/* Hashtags */}
-            <div className="form-control gap-1.5">
+            <div className="form-control gap-1.5 text-base-content">
               <label className="label py-0">
                 <span className="label-text font-medium text-sm">Hashtag</span>
                 <span className="label-text-alt text-xs opacity-50">
@@ -398,7 +402,7 @@ export default function ModalShareVideoYouTube() {
                   />
                 </label>
                 <button
-                  className="btn btn-sm btn-outline bg-primary-500 text-white"
+                  className="btn btn-sm btn-outline bg-primary text-primary-content"
                   onClick={addHashtag}
                   disabled={!newHashtag.trim()}
                 >
@@ -408,7 +412,7 @@ export default function ModalShareVideoYouTube() {
             </div>
 
             {/* Categories */}
-            <div className="form-control gap-1.5">
+            <div className="form-control gap-1.5 text-base-content">
               <label className="label py-0">
                 <span className="label-text font-medium text-sm">Danh mục</span>
                 <span className="label-text-alt text-xs opacity-50">
@@ -474,10 +478,12 @@ export default function ModalShareVideoYouTube() {
       {/* Footer */}
       <div className="flex items-center justify-end gap-2 px-6 py-4 border-t border-base-200 bg-base-100">
         <form method="dialog">
-          <button className="btn btn-ghost btn-sm">Huỷ</button>
+          <button className="btn btn-ghost btn-sm text-base-content">
+            Huỷ
+          </button>
         </form>
         <button
-          className="btn bg-primary-500 text-white btn-sm"
+          className="btn bg-primary text-primary-content btn-sm"
           disabled={!video || loading || isSubmitting}
           onClick={handleSubmit}
         >

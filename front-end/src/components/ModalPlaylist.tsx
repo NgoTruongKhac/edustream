@@ -99,29 +99,29 @@ export default function ModalPlaylist() {
   return (
     <div className="modal-box w-full max-w-sm rounded-2xl p-0 overflow-hidden shadow-xl">
       {/* Header */}
-      <div className="flex items-center justify-between px-5 py-4 border-b border-neutral-100">
+      <div className="flex items-center justify-between px-5 py-4 border-b border-base">
         <div className="flex items-center gap-2">
-          <ListVideo size={18} className="text-primary-500" />
-          <h3 className="font-semibold text-neutral-900 text-base">
+          <ListVideo size={18} className="text-primary" />
+          <h3 className="font-semibold text-base-content text-base">
             Lưu vào playlist
           </h3>
         </div>
         <button
           onClick={closeModal}
-          className="btn btn-ghost btn-xs btn-circle text-neutral-400 hover:text-neutral-700"
+          className="btn btn-ghost btn-xs btn-circle text-base hover:text-base-50"
         >
           <X size={16} />
         </button>
       </div>
 
       {/* Playlist list */}
-      <div className="max-h-64 overflow-y-auto divide-y divide-neutral-50">
+      <div className="max-h-64 overflow-y-auto divide-y divide-base">
         {loading ? (
           <div className="flex justify-center items-center py-10">
             <span className="loading loading-spinner loading-md text-primary" />
           </div>
         ) : playlists.length === 0 ? (
-          <p className="text-center text-sm text-neutral-400 py-10">
+          <p className="text-center text-sm text-base-content py-10">
             Bạn chưa có playlist nào.
           </p>
         ) : (
@@ -177,7 +177,7 @@ export default function ModalPlaylist() {
                         className={
                           isInPlaylist
                             ? "text-primary fill-primary"
-                            : "text-neutral-400"
+                            : "text-base-content"
                         }
                       />
                     )}
@@ -190,7 +190,7 @@ export default function ModalPlaylist() {
       </div>
 
       {/* Footer: create new */}
-      <div className="px-5 py-4 border-t border-neutral-100">
+      <div className="px-5 py-4 border-t border-base">
         {showNewInput ? (
           <div className="flex items-center gap-2">
             <input
@@ -212,7 +212,7 @@ export default function ModalPlaylist() {
             <button
               onClick={handleCreatePlaylist}
               disabled={!newName.trim() || creating}
-              className="btn btn-sm text-white bg-primary-500 rounded-xl px-4"
+              className="btn btn-sm text-primary-content bg-primary rounded-xl px-3"
             >
               {creating ? (
                 <span className="loading loading-spinner loading-xs" />
@@ -233,7 +233,7 @@ export default function ModalPlaylist() {
         ) : (
           <button
             onClick={() => setShowNewInput(true)}
-            className="btn btn-sm btn-ghost w-full gap-2 text-primary-500 hover:bg-primary/10 rounded-xl"
+            className="btn btn-sm btn-ghost w-full gap-2 text-primary rounded-xl"
           >
             <Plus size={16} />
             Tạo playlist mới

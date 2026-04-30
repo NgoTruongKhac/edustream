@@ -1,4 +1,4 @@
-import { Mail, Lock } from "lucide-react";
+import { Mail, Lock, ArrowLeft } from "lucide-react";
 import logo_full from "@/assets/logo/logo_full.png";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -7,6 +7,7 @@ import { useAuthStore } from "@/stores/useAuthStore";
 import { loginWithGoogle } from "@/api/authApi";
 
 import z from "zod";
+import { Link } from "react-router-dom";
 
 type LoginFormData = z.infer<typeof loginSchema>;
 export default function Login() {
@@ -38,23 +39,33 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex bg-neutral-50">
+    <div className="min-h-screen flex bg-base-100">
       {/* --- CỘT TRÁI: FORM ĐĂNG NHẬP --- */}
-      <div className="w-full lg:w-1/2 flex flex-col justify-center px-6 sm:px-12 md:px-20 lg:px-24 bg-white shadow-soft lg:shadow-none z-10 rounded-t-3xl mt-12 lg:mt-0 lg:rounded-none">
+      <div className="w-full lg:w-1/2 flex flex-col justify-center px-6 sm:px-12 md:px-20 lg:px-24 bg-base-100 lg:shadow-none z-10 rounded-t-3xl mt-12 lg:mt-0 lg:rounded-none">
         {/* Logo hiển thị trên Mobile (bị ẩn phần intro bên phải nên cần hiện ở đây) */}
         <div className="lg:hidden flex justify-center mb-8">
           <img src={logo_full} alt="logo" className="h-10 w-auto" />
         </div>
+        <Link
+          to={"/"}
+          className="inline-flex items-center gap-2 text-sm text-base-content/70 hover:text-primary transition-colors mb-3 mt-1"
+        >
+          <ArrowLeft size={18} className="opacity-80" />
+          <span>Trang chủ</span>
+        </Link>
 
-        <div className="w-full max-w-sm mx-auto lg:mx-0 pl-10 pr-10  pt-10 pb-10 border rounded-2xl">
-          <h2 className="text-3xl font-bold text-neutral-900 mb-2">
+        <div className="w-full max-w-sm mx-auto lg:mx-0 pl-10 pr-10  pt-10 pb-10 border border-primary rounded-2xl">
+          <h2 className="text-3xl font-bold text-base-content mb-2">
             Đăng nhập
           </h2>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
             {/* Input Email */}
             <div className="form-control">
               <label className="label py-1">
-                <span className="label-text font-medium text-neutral-700">
+                <span
+                  className="label-text font-medium text-base-content
+                "
+                >
                   Email
                 </span>
               </label>
@@ -67,7 +78,7 @@ export default function Login() {
                   type="email"
                   placeholder="ví dụ: tenban@email.com"
                   {...register("email")}
-                  className="input w-full pl-11 bg-neutral-50 border-neutral-200 text-neutral-800 placeholder:text-neutral-400 focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary-100 rounded-xl transition-all"
+                  className="input w-full pl-11 bg-base-100 border-base-50 text-base-content placeholder:text-base focus:bg-base-100 focus:border-primary focus:ring-1 focus:ring-primary-100 rounded-xl transition-all"
                 />
                 {errors.email && (
                   <p className="text-red-500 text-sm mt-1">
@@ -80,7 +91,7 @@ export default function Login() {
             {/* Input Password */}
             <div className="form-control">
               <label className="label py-1">
-                <span className="label-text font-medium text-neutral-700">
+                <span className="label-text font-medium text-base-content">
                   Mật khẩu
                 </span>
               </label>
@@ -93,7 +104,7 @@ export default function Login() {
                   type="password"
                   {...register("password")}
                   placeholder="••••••••"
-                  className="input w-full pl-11 pr-11 bg-neutral-50 border-neutral-200 text-neutral-800 focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary-100 rounded-xl transition-all"
+                  className="input w-full pl-11 pr-11 bg-base-100 border-base text-base-content focus:bg-base-100 focus:border-primary focus:ring-1 focus:ring-primary-100 rounded-xl transition-all"
                 />
                 {errors.password && (
                   <p className="text-red-500 text-sm mt-1">
@@ -110,11 +121,13 @@ export default function Login() {
                   type="checkbox"
                   className="checkbox checkbox-sm checkbox-primary rounded"
                 />
-                <span className="label-text text-neutral-600">Ghi nhớ tôi</span>
+                <span className="label-text text-base-content">
+                  Ghi nhớ tôi
+                </span>
               </label>
               <a
                 href="#"
-                className="text-sm text-primary-600 hover:text-primary-700 font-medium hover:underline"
+                className="text-sm text-primary font-medium hover:underline"
               >
                 Quên mật khẩu?
               </a>
@@ -123,21 +136,21 @@ export default function Login() {
             {/* Nút Submit */}
             <button
               type="submit"
-              className="btn w-full bg-primary text-white border-none hover:bg-primary-600 rounded-xl mt-2 text-base font-medium"
+              className="btn w-full bg-primary text-primary-content border-none hover:bg-primary/90 rounded-xl mt-2 text-base font-medium"
             >
               Đăng nhập
             </button>
           </form>
 
           {/* Divider */}
-          <div className="divider text-neutral-400 text-sm my-6">
+          <div className="divider text-sm my-6 text-base-content">
             hoặc tiếp tục với
           </div>
 
           {/* Nút Đăng nhập Google */}
           <button
             onClick={() => loginWithGoogle()}
-            className="btn w-full bg-white border border-neutral-200 hover:bg-neutral-50 text-neutral-700 rounded-xl gap-3 font-medium"
+            className="btn w-full bg-base-100 border border-base hover:bg-base-200 text-base-content rounded-xl gap-3 font-medium"
           >
             <svg viewBox="0 0 24 24" className="w-5 h-5" aria-hidden="true">
               <path
@@ -161,7 +174,7 @@ export default function Login() {
           </button>
 
           {/* Chuyển hướng Đăng ký */}
-          <p className="text-center text-neutral-600 mt-8">
+          <p className="text-center text-base-content mt-8">
             Chưa có tài khoản?{" "}
             <a
               href="/register"

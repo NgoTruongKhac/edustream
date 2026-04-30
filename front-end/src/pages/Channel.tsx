@@ -126,7 +126,7 @@ export default function Channel() {
   }
 
   return (
-    <main className="flex-1 overflow-y-auto bg-white">
+    <main className="flex-1 overflow-y-auto bg-base-100">
       {/* 1. Phần Ảnh Bìa (Banner - Giả lập) */}
       {user?.coverImage && (
         <div className="w-full h-25 sm:h-[100px] md:h-[200px] bg-neutral-200">
@@ -147,16 +147,16 @@ export default function Channel() {
               `https://ui-avatars.com/api/?name=${user.fullName}&background=random`
             }
             alt={user.fullName}
-            className="w-25 h-25 sm:w-37 sm:h-37 rounded-full object-cover shadow-sm border border-neutral-100"
+            className="w-25 h-25 sm:w-37 sm:h-37 rounded-full object-cover shadow-sm border border-base-300"
           />
 
           <div className="flex-1">
-            <h1 className="text-2xl sm:text-3xl font-bold text-neutral-900">
+            <h1 className="text-2xl sm:text-3xl font-bold text-base-content">
               {user.fullName}
             </h1>
 
-            <div className="flex flex-wrap items-center text-sm text-neutral-600 mt-1 gap-x-2">
-              <span className="font-medium text-neutral-900">
+            <div className="flex flex-wrap items-center text-sm text-base-content/70 mt-1 gap-x-2">
+              <span className="font-medium text-base-content">
                 @{user.username}
               </span>
               <span>•</span>
@@ -166,7 +166,7 @@ export default function Channel() {
             </div>
 
             {user.description && (
-              <p className="text-sm text-neutral-600 mt-2 line-clamp-2 max-w-3xl">
+              <p className="text-sm text-base-content/70 mt-2 line-clamp-2 max-w-3xl">
                 {user.description}
               </p>
             )}
@@ -176,14 +176,14 @@ export default function Channel() {
                 <>
                   <Link
                     to={"/edit-profile"}
-                    className="btn bg-primary-500 text-white rounded-xl text-sm font-medium hover:bg-primary-600 transition mr-3"
+                    className="btn bg-primary text-primary-content rounded-xl text-sm font-medium hover:bg-primary/90 transition mr-3"
                   >
                     chỉnh sửa hồ sơ
                   </Link>
 
                   <Link
                     to={"/manage-videos"}
-                    className="btn bg-primary-500 text-white rounded-xl text-sm font-medium hover:bg-primary-600 transition"
+                    className="btn bg-primary text-primary-content rounded-xl text-sm font-medium hover:bg-primary/90 transition"
                   >
                     quản lý video
                   </Link>
@@ -197,7 +197,7 @@ export default function Channel() {
 
         {/* 3. Thanh Điều Hướng Tabs */}
         <div className="flex items-center border-b border-neutral-200 mt-8 font-medium text-sm">
-          <button className="pb-3 px-4 border-b-2 border-neutral-900 text-neutral-900">
+          <button className="pb-3 px-4 border-b-2 border-neutral-900 text-base-content">
             Video
           </button>
         </div>
@@ -239,7 +239,7 @@ export default function Channel() {
                   <button
                     onClick={handleLoadMore}
                     disabled={videosLoading}
-                    className="btn bg-primary-500 text-white btn-sm rounded-xl px-6"
+                    className="btn bg-primary text-base-content btn-sm rounded-xl px-6"
                   >
                     {videosLoading ? "Đang tải..." : "Xem thêm"}
                   </button>

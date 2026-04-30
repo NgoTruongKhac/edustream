@@ -8,7 +8,7 @@ export default function MainLayout() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-[#fafbfc] flex flex-col font-sans relative">
+    <div className="min-h-screen bg-base-100 flex flex-col font-sans relative">
       {/* Navbar ở trên cùng */}
       <Navbar onOpenSidebar={() => setIsSidebarOpen(true)} />
 

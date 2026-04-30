@@ -45,11 +45,11 @@ export default function PlayList() {
   }
 
   return (
-    <div className="flex-1 bg-white min-h-screen">
+    <div className="flex-1 bg-base-100 min-h-screen">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8">
         {/* Page header */}
         <div className="flex items-center gap-2 mb-6">
-          <h1 className="text-xl font-bold text-neutral-900">
+          <h1 className="text-xl font-bold text-base-content">
             Playlist của tôi
           </h1>
         </div>
@@ -101,9 +101,9 @@ export default function PlayList() {
                   )}
 
                   {/* Video count overlay */}
-                  <div className="absolute bottom-0 right-0 left-0 bg-black/60 backdrop-blur-sm flex items-center justify-center gap-1.5 py-1.5">
-                    <ListVideo size={13} className="text-white" />
-                    <span className="text-white text-xs font-medium">
+                  <div className="absolute bottom-0 right-0 left-0 bg-neutral/80 backdrop-blur-sm flex items-center justify-center gap-1.5 py-1.5">
+                    <ListVideo size={13} className="text-neutral-content" />
+                    <span className="text-neutral-content text-xs font-medium">
                       {pl.videoCount} video
                     </span>
                   </div>
@@ -111,10 +111,10 @@ export default function PlayList() {
 
                 {/* Info */}
                 <div className="mt-2 px-0.5">
-                  <p className="text-sm font-semibold text-neutral-900 line-clamp-2 leading-snug group-hover:text-primary transition-colors">
+                  <p className="text-sm font-semibold text-base-content line-clamp-2 leading-snug group-hover:text-primary transition-colors">
                     {pl.playlistName}
                   </p>
-                  <p className="text-xs text-neutral-400 mt-0.5">
+                  <p className="text-xs text-base-content mt-0.5">
                     {pl.videoCount} video
                   </p>
                 </div>

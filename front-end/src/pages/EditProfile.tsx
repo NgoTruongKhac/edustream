@@ -169,211 +169,188 @@ export default function EditProfile() {
       <div className="container mx-auto max-w-5xl">
         <button
           onClick={handleBack}
-          className="flex items-center gap-2 px-2 py-2 hover:bg-neutral-100 rounded-xl cursor-pointer"
+          className="flex items-center gap-2 px-2 py-2 hover:bg-base-200 rounded-xl cursor-pointer"
         >
           <ArrowLeft size={18} />
           <span>Quay lại</span>
         </button>
         <div className="mb-8 mt-2 text-center md:text-left">
-          <h1 className="text-2xl font-bold text-neutral-900">
+          <h1 className="text-2xl font-bold text-base-content">
             Chỉnh sửa hồ sơ
           </h1>
         </div>
 
-        <div className="">
-          {/* 5. Thêm onSubmit vào form */}
-          <form className="flex flex-col gap-10" onSubmit={handleUpdateUser}>
-            <div className="flex flex-col gap-6 pb-4">
-              <div className="relative w-full h-40 bg-neutral-200 overflow-hidden group">
-                {user.coverImage ? (
-                  <img
-                    src={user.coverImage}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full flex flex-col items-center justify-center text-neutral-500 gap-2">
-                    <Camera size={28} />
-                    <span className="text-sm font-medium">
-                      Thêm ảnh biểu ngữ
-                    </span>
-                    <span className="text-xs text-neutral-400">
-                      Tải ảnh nền cho hồ sơ của bạn
-                    </span>
+        <form className="flex flex-col gap-10" onSubmit={handleUpdateUser}>
+          <div className="flex flex-col gap-6 pb-4">
+            {/* Cover */}
+            <div className="relative w-full h-40 bg-base-200 overflow-hidden group">
+              {user.coverImage ? (
+                <img
+                  src={user.coverImage}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full flex flex-col items-center justify-center text-base-content/60 gap-2">
+                  <Camera size={28} />
+                  <span className="text-sm font-medium">Thêm ảnh biểu ngữ</span>
+                  <span className="text-xs text-base-content/50">
+                    Tải ảnh nền cho hồ sơ của bạn
+                  </span>
+                </div>
+              )}
+
+              <input
+                id="banner-upload"
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleUploadCoverImage}
+                disabled={isUploadingImage}
+              />
+
+              <label
+                htmlFor="banner-upload"
+                className="absolute bottom-3 right-3 cursor-pointer p-2 rounded-full bg-base-content/40 text-base-100"
+              >
+                <Camera size={18} />
+              </label>
+            </div>
+
+            {/* Avatar */}
+            <div className="flex flex-col sm:flex-row items-center gap-8">
+              <div className="relative w-32 h-32 group">
+                <div className="avatar">
+                  <div className="w-32 rounded-full ring ring-primary ring-offset-base-100 ring-offset-4 overflow-hidden">
+                    <img src={user.avatar} alt="User Avatar" />
                   </div>
-                )}
+                </div>
+
                 <input
-                  id="banner-upload"
+                  id="avatar-upload"
                   type="file"
                   accept="image/*"
                   className="hidden"
-                  onChange={handleUploadCoverImage}
+                  onChange={handleUploadAvatar}
                   disabled={isUploadingImage}
                 />
+
                 <label
-                  htmlFor="banner-upload"
-                  className="absolute bottom-3 right-3 cursor-pointer p-2 rounded-full bg-black/50 text-white"
+                  htmlFor="avatar-upload"
+                  className="absolute inset-0 flex items-center justify-center bg-base-content/20 text-base-100 rounded-full cursor-pointer"
                 >
-                  <Camera size={18} />
+                  <Camera size={22} />
                 </label>
               </div>
 
-              <div className="flex flex-col sm:flex-row items-center gap-8">
-                <div className="relative w-32 h-32 group">
-                  <div className="avatar">
-                    <div className="w-32 rounded-full ring ring-primary ring-offset-base-100 ring-offset-4 overflow-hidden">
-                      <img src={user.avatar} alt="User Avatar" />
-                    </div>
-                  </div>
-                  <input
-                    id="avatar-upload"
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={handleUploadAvatar}
-                    disabled={isUploadingImage}
-                  />
-                  <label
-                    htmlFor="avatar-upload"
-                    className="absolute inset-0 flex items-center justify-center bg-black/20 text-white rounded-full cursor-pointer"
-                  >
-                    <Camera size={22} />
-                  </label>
-                </div>
+              <h2 className="text-2xl font-bold text-base-content">
+                {user.fullName}
+              </h2>
+            </div>
+          </div>
 
-                <div className="flex flex-col gap-2 items-center sm:items-start text-center sm:text-left">
-                  <h2 className="text-2xl font-bold text-neutral-800">
-                    {user.fullName}
-                  </h2>
-                </div>
+          {/* FORM */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+            <label className="form-control w-full">
+              <div className="label pt-0">
+                <span className="label-text font-semibold text-base-content">
+                  Họ và tên
+                </span>
               </div>
-            </div>
+              <input
+                name="fullName"
+                value={formData.fullName}
+                onChange={handleChange}
+                className="input input-bordered w-full bg-base-200 text-base-content focus:input-primary"
+              />
+            </label>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
-              {/* Full Name */}
-              <label className="form-control w-full">
-                <div className="label pt-0">
-                  <span className="label-text font-semibold text-neutral-700">
-                    Họ và tên
-                  </span>
-                </div>
-                {/* 6. Thay value = formData và thêm onChange */}
-                <input
-                  type="text"
-                  name="fullName"
-                  value={formData.fullName}
-                  onChange={handleChange}
-                  placeholder="Nhập họ và tên..."
-                  className="input input-bordered w-full focus:input-primary transition-colors bg-base-50"
-                />
-              </label>
+            <label className="form-control w-full">
+              <div className="label pt-0">
+                <span className="label-text font-semibold text-base-content">
+                  Tên định danh
+                </span>
+                <span className="label-text-alt text-base-content/50 italic">
+                  (chỉ được thay đổi sau mỗi 30 ngày)
+                </span>
+              </div>
+              <input
+                name="username"
+                value={`@${formData.username}`}
+                onChange={handleChange}
+                className="input input-bordered w-full bg-base-200 text-base-content focus:input-primary"
+              />
+            </label>
 
-              {/* Username */}
-              <label className="form-control w-full">
-                <div className="label pt-0">
-                  <span className="label-text font-semibold text-neutral-700">
-                    Tên định danh
-                  </span>
-                  <span className="label-text-alt text-neutral-400 italic">
-                    (chỉ được thay đổi sau mỗi 30 ngày)
-                  </span>
-                </div>
-                {/* 6. Thay value = formData và thêm onChange */}
-                <input
-                  type="text"
-                  name="username"
-                  value={`@${formData.username}`}
-                  onChange={handleChange}
-                  placeholder="Nhập username..."
-                  className="input input-bordered w-full focus:input-primary transition-colors bg-base-50"
-                />
-              </label>
-
-              {/* Email */}
-              <label className="form-control w-full">
-                <div className="label pt-0">
-                  <span className="label-text font-semibold text-neutral-700">
-                    Địa chỉ Email
-                  </span>
-                </div>
-                <input
-                  type="email"
-                  name="email"
-                  value={user.email}
-                  readOnly
-                  className="input input-bordered w-full bg-neutral-100 text-neutral-600 cursor-not-allowed border-neutral-200"
-                />
-                <div>
-                  <button
-                    disabled={isGoogleUser}
-                    onClick={() => setIsEmailModalOpen(true)}
-                    type="button"
-                    className="btn bg-primary-500 text-white mt-4 rounded-xl 
-                    "
-                  >
-                    thay đổi Email
-                  </button>
-                </div>
-              </label>
-
-              {/* Provider */}
-              <label className="form-control w-full">
-                <div className="label pt-0">
-                  <span className="label-text font-semibold text-neutral-700">
-                    Phương thức đăng nhập
-                  </span>
-                  <span className="label-text-alt text-neutral-400 italic">
-                    (với Google bạn không thể thay đổi email)
-                  </span>
-                </div>
-                <input
-                  type="text"
-                  value={user.authProvider}
-                  readOnly
-                  className="input input-bordered w-full bg-neutral-100 text-neutral-600 cursor-not-allowed border-neutral-200"
-                />
-              </label>
-            </div>
-
-            {/* Description */}
-            <div className="w-full">
-              <label className="form-control w-full">
-                <div className="label pt-0 pb-2">
-                  <span className="label-text font-bold text-neutral-700 text-base">
-                    Mô tả bản thân
-                  </span>
-                  <span className="label-text-alt text-neutral-400 italic">
-                    (Tối đa 500 ký tự)
-                  </span>
-                </div>
-                {/* 6. Thay value = formData và thêm onChange */}
-                <textarea
-                  name="description"
-                  value={formData.description}
-                  onChange={handleChange}
-                  placeholder="Viết một chút về bản thân bạn..."
-                  className="textarea textarea-bordered w-full h-40 focus:textarea-primary transition-all bg-neutral-50 border-neutral-200 text-base resize-none"
-                ></textarea>
-              </label>
-            </div>
-
-            <div className="flex flex-col sm:flex-row justify-end gap-4 mt-6 pt-2">
+            {/* Email */}
+            <label className="form-control w-full">
+              <span className="label-text font-semibold text-base-content">
+                Email
+              </span>
+              <input
+                value={user.email}
+                readOnly
+                className="input input-bordered w-full bg-base-300 text-base-content/60 cursor-not-allowed"
+              />
               <button
                 type="button"
-                onClick={handleBack}
-                className="btn btn-ghost text-neutral-700 hover:bg-neutral-100 px-6 rouded-xl"
+                onClick={() => setIsEmailModalOpen(true)}
+                className="btn bg-primary text-primary-content mt-4 rounded-xl"
               >
-                Hủy
+                thay đổi Email
               </button>
-              <button
-                type="submit"
-                disabled={isUpdating}
-                className="btn bg-primary-500 text-white px-8 rounded-xl"
-              >
-                {isUpdating ? "Đang lưu..." : "Lưu thay đổi"}
-              </button>
-            </div>
-          </form>
-        </div>
+            </label>
+
+            {/* Provider */}
+            <label className="form-control w-full">
+              <span className="label-text font-semibold text-base-content">
+                Phương thức đăng nhập
+              </span>
+              <input
+                value={user.authProvider}
+                readOnly
+                className="input input-bordered w-full bg-base-300 text-base-content/60"
+              />
+            </label>
+          </div>
+
+          {/* Description */}
+          <div className="w-full">
+            <label className="form-control w-full">
+              <div className="label pt-0 pb-2">
+                <span className="label-text font-bold text-base-content text-base">
+                  Mô tả bản thân
+                </span>
+                <span className="label-text-alt text-base-content/50 italic">
+                  (Tối đa 500 ký tự){" "}
+                </span>
+              </div>
+              {/* 6. Thay value = formData và thêm onChange */}
+              <textarea
+                value={formData.description}
+                onChange={handleChange}
+                className="textarea textarea-bordered w-full h-40 bg-base-200 text-base-content focus:textarea-primary"
+              />
+            </label>
+          </div>
+
+          {/* Actions */}
+          <div className="flex justify-end gap-4 mt-6">
+            <button
+              type="button"
+              onClick={handleBack}
+              className="btn btn-ghost text-base-content hover:bg-base-200"
+            >
+              Hủy
+            </button>
+
+            <button
+              type="submit"
+              className="btn bg-primary text-primary-content"
+            >
+              Lưu thay đổi
+            </button>
+          </div>
+        </form>
       </div>
       {isEmailModalOpen && (
         <div className="modal modal-open">
@@ -385,7 +362,7 @@ export default function EditProfile() {
               <div className="label">
                 <span className="label-text">Email hiện tại</span>
               </div>
-              <p className="px-3 py-2 bg-neutral-100 rounded-lg text-neutral-700">
+              <p className="px-3 py-2 bg-base-200 rounded-lg text-base-content">
                 {user.email}
               </p>
             </div>
@@ -400,7 +377,7 @@ export default function EditProfile() {
               className="input input-bordered w-full"
               required
             />
-            <div className="flex items-start gap-2 mt-3 p-3 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-700">
+            <div className="flex items-start gap-2 mt-3 p-3 bg-warning/20 border border-warning rounded-lg text-sm text-warning">
               <span>⚠️</span>
               <p>
                 Bạn sẽ phải <span className="font-semibold">đăng nhập lại</span>{" "}
@@ -422,7 +399,7 @@ export default function EditProfile() {
                 type="submit"
                 onClick={handleChangeEmail}
                 disabled={isUpdatingEmail}
-                className="btn bg-primary-500 text-white rounded-xl"
+                className="btn bg-primary text-primary-content rounded-xl"
               >
                 {isUpdatingEmail ? "Đang xử lý..." : "Xác nhận"}
               </button>

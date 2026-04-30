@@ -33,7 +33,7 @@ function AvatarCircle({
 }) {
   return (
     <div
-      className={`w-${size} h-${size} rounded-full overflow-hidden shrink-0 border border-neutral-200`}
+      className={`w-${size} h-${size} rounded-full overflow-hidden shrink-0 border border-base`}
     >
       <img
         src={
@@ -58,11 +58,11 @@ function ReplyItem({
     <div className="flex gap-2.5 mt-3">
       <AvatarCircle src={reply.avatar} name={reply.fullName} size={8} />
       <div className="flex-1 min-w-0">
-        <div className="bg-neutral-100 rounded-xl px-3 py-2">
-          <p className="text-xs font-semibold text-neutral-900">
+        <div className="bg-base-100 rounded-xl px-3 py-2">
+          <p className="text-xs font-semibold text-base-content">
             {reply.fullName}
           </p>
-          <p className="text-sm text-neutral-700 mt-0.5 break-words">
+          <p className="text-sm text-base-content mt-0.5 break-words">
             {reply.content}
           </p>
         </div>
@@ -70,7 +70,7 @@ function ReplyItem({
           onClick={() => onLike(reply.id)}
           className={`flex items-center gap-1 mt-1 ml-2 text-xs transition-colors ${
             reply.likedByMe
-              ? "text-blue-600 font-semibold"
+              ? "text-primary font-semibold"
               : "text-neutral-500 hover:text-neutral-800"
           }`}
         >
@@ -131,32 +131,32 @@ function CommentItem({
 
       <div className="flex-1 min-w-0">
         {/* Bubble */}
-        <div className="bg-neutral-100 rounded-xl px-4 py-3">
-          <p className="text-sm font-semibold text-neutral-900">
+        <div className="bg-base-200 rounded-xl px-4 py-3">
+          <p className="text-sm font-bold text-base-content">
             {comment.fullName}
           </p>
-          <p className="text-sm text-neutral-700 mt-1 break-words whitespace-pre-line">
+          <p className="text-sm text-base-content/90 mt-1 break-words whitespace-pre-line leading-relaxed">
             {comment.content}
           </p>
         </div>
 
         {/* Actions */}
-        <div className="flex items-center gap-3 mt-1.5 ml-2">
+        <div className="flex items-center gap-4 mt-1.5 ml-2">
           <button
             onClick={() => onLike(comment.id)}
             className={`flex items-center cursor-pointer gap-1 text-xs transition-colors ${
               comment.likedByMe
-                ? "text-blue-600 font-semibold"
-                : "text-neutral-500 hover:text-neutral-800"
+                ? "text-primary font-bold"
+                : "text-base-content/60 hover:text-base-content"
             }`}
           >
-            <ThumbsUp size={13} />
+            <ThumbsUp size={13} strokeWidth={comment.likedByMe ? 2.5 : 2} />
             <span>{comment.likeCount > 0 ? comment.likeCount : "Thích"}</span>
           </button>
 
           <button
             onClick={() => setShowReplyInput((p) => !p)}
-            className="flex items-center gap-1 text-xs text-neutral-500 hover:text-neutral-800 transition-colors cursor-pointer"
+            className="flex items-center gap-1 text-xs text-base-content/60 hover:text-base-content transition-colors cursor-pointer"
           >
             <MessageSquare size={13} />
             <span>Trả lời</span>
@@ -166,7 +166,7 @@ function CommentItem({
         {/* Reply input */}
         {showReplyInput && (
           <div className="flex gap-2 mt-2">
-            <div className="flex-1 flex items-end gap-2 bg-white border border-neutral-200 rounded-xl px-3 py-2 focus-within:border-blue-400 transition-colors">
+            <div className="flex-1 flex items-end gap-2 bg-base-100 border border-base rounded-xl px-3 py-2 focus-within:border-primary transition-colors">
               <textarea
                 ref={textareaRef}
                 value={replyText}
@@ -174,7 +174,7 @@ function CommentItem({
                 onKeyDown={handleKeyDown}
                 placeholder="Viết trả lời..."
                 rows={1}
-                className="flex-1 text-sm text-neutral-800 bg-transparent outline-none resize-none placeholder:text-neutral-400"
+                className="flex-1 text-sm text-base-content bg-transparent outline-none resize-none placeholder:text-neutral-400"
               />
               <button
                 onClick={handleReply}
@@ -195,7 +195,7 @@ function CommentItem({
         {replyCount > 0 && (
           <button
             onClick={() => setShowReplies((p) => !p)}
-            className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 font-medium mt-2 ml-2 transition-colors"
+            className="flex items-center gap-1 text-xs text-primary-content hover:text-blue-800 font-medium mt-2 ml-2 transition-colors"
           >
             {showReplies ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
             {showReplies ? "Ẩn" : `Xem ${replyCount} trả lời`}
@@ -327,7 +327,7 @@ export default function Comment({ videoId }: Props) {
 
   return (
     <div className="mt-6">
-      <h2 className="text-base sm:text-lg font-semibold text-neutral-900 mb-4">
+      <h2 className="text-base sm:text-lg font-semibold text-base-content mb-4">
         {comments.length} bình luận
       </h2>
 
@@ -348,8 +348,8 @@ export default function Comment({ videoId }: Props) {
 
         <div className="flex-1 flex flex-col gap-2">
           <div
-            className={`flex items-end gap-2 border rounded-2xl px-4 py-2.5 bg-white transition-colors ${
-              focused ? "border-blue-400" : "border-neutral-200"
+            className={`flex items-end gap-2 border rounded-2xl px-4 py-2.5 bg-base-100 transition-colors ${
+              focused ? "border-primary" : "border-base"
             }`}
           >
             <textarea
@@ -360,7 +360,7 @@ export default function Comment({ videoId }: Props) {
               onKeyDown={handleKeyDown}
               placeholder="Viết bình luận..."
               rows={focused ? 3 : 1}
-              className="flex-1 text-sm text-neutral-800 bg-transparent outline-none resize-none placeholder:text-neutral-400 transition-all"
+              className="flex-1 text-sm text-base-content bg-transparent outline-none resize-none placeholder:text-neutral-400 transition-all"
             />
             {(focused || newComment) && (
               <button

@@ -1,6 +1,7 @@
 @import "tailwindcss";
-@plugin "daisyui";
-
+@plugin "daisyui" {
+  themes: all;
+}
 @theme {
   /* Colors */
   --color-primary-50: #e6f1ff;

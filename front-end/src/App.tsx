@@ -16,40 +16,52 @@ import { Toaster } from "react-hot-toast";
 import ManageVideos from "./pages/ManageVideos";
 import VideoWatch from "./pages/VideoWatch";
 import PlaylistVideos from "./pages/PlaylistVideos";
+import "./index.css";
+import { useThemeStore } from "./stores/useThemeStore";
 
 function App() {
   const { checkAuthStatus } = useAuthStore();
+  const { theme } = useThemeStore();
 
   useEffect(() => {
     checkAuthStatus();
   }, [checkAuthStatus]);
+  useEffect(() => {
+    // Gán thuộc tính data-theme cho thẻ <html>
+    document.documentElement.setAttribute("theme", theme);
+  }, [theme]);
   return (
     <>
-      <Toaster
-        position="bottom-right"
-        reverseOrder={false}
-        toastOptions={{
-          duration: 3000,
-        }}
-      />
-      <Routes>
-        <Route element={<MainLayout />}>
-          <Route path="/" element={<Home />} />
-          <Route path="/playlist" element={<PlayList />} />
-          <Route path="/playlist/:playlistVideo" element={<PlaylistVideos />} />
-          <Route path="/subscriptions" element={<Subscription />} />
-          <Route path="/profile" element={<Profile />} />
-          <Route path="/:username" element={<Channel />} />
-          <Route path="/edit-profile" element={<EditProfile />} />
-          <Route path="/manage-videos" element={<ManageVideos />} />
-          <Route path="/watch/:videoId" element={<VideoWatch />} />
-        </Route>
-        <Route path="/login" element={<Login />} />
+      <div data-theme={theme}>
+        <Toaster
+          position="bottom-right"
+          reverseOrder={false}
+          toastOptions={{
+            duration: 3000,
+          }}
+        />
+        <Routes>
+          <Route element={<MainLayout />}>
+            <Route path="/" element={<Home />} />
+            <Route path="/playlist" element={<PlayList />} />
+            <Route
+              path="/playlist/:playlistVideo"
+              element={<PlaylistVideos />}
+            />
+            <Route path="/subscriptions" element={<Subscription />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/:username" element={<Channel />} />
+            <Route path="/edit-profile" element={<EditProfile />} />
+            <Route path="/manage-videos" element={<ManageVideos />} />
+            <Route path="/watch/:videoId" element={<VideoWatch />} />
+          </Route>
+          <Route path="/login" element={<Login />} />
 
-        <Route path="/register" element={<Register />} />
-        <Route path="/oauth2/redirect" element={<AuthGoogle />} />
-        <Route path="*" element={<NotFound />} />
-      </Routes>
+          <Route path="/register" element={<Register />} />
+          <Route path="/oauth2/redirect" element={<AuthGoogle />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </div>
     </>
   );
 }

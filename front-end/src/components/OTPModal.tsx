@@ -105,7 +105,7 @@ export function OTPModal({ verifyFn, onSuccess }: OTPModalProps) {
 
       <div className="text-center mb-2">
         {countDown > 0 ? (
-          <p className="text-blue-600">
+          <p className="text-primary">
             The OTP code will expire in:{" "}
             <span className="font-mono tracking-wider">
               {formatTime(countDown)}

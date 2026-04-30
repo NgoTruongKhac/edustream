@@ -17,6 +17,7 @@ public class VideoResponseDto {
     private String description;
     private long duration;
     private VideoType videoType;
+    private String videoUrl;
     private String videoYoutubeUrl;
     private String videoYoutubeId;
     private String fullName;
