@@ -1,21 +1,21 @@
 package com.example.edustream.service;
 
+import com.example.edustream.dto.request.NotificationRequestDto;
 import com.example.edustream.dto.request.VideoUploadRequestDto;
 import com.example.edustream.dto.request.VideoYoutubeRequestDto;
+import com.example.edustream.dto.response.NotificationResponseDto;
 import com.example.edustream.dto.response.PageResponse;
 import com.example.edustream.dto.response.VideoResponseDto;
 import com.example.edustream.dto.response.VideoUploadResponseDto;
-import com.example.edustream.entity.Category;
-import com.example.edustream.entity.Hashtag;
-import com.example.edustream.entity.User;
-import com.example.edustream.entity.UserPrincipal;
-import com.example.edustream.entity.Video;
+import com.example.edustream.entity.*;
+import com.example.edustream.entity.enums.NotificationType;
 import com.example.edustream.entity.enums.VideoStatus;
 import com.example.edustream.entity.enums.VideoType;
 import com.example.edustream.exception.ResourceNotFoundException;
 import com.example.edustream.mapper.VideoMapper;
 import com.example.edustream.repository.CategoryRepository;
 import com.example.edustream.repository.HashtagRepository;
+import com.example.edustream.repository.SubscriptionRepository;
 import com.example.edustream.repository.VideoRepository;
 import com.example.edustream.util.StringUtil;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +24,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -38,7 +39,10 @@ public class VideoService {
     private final CategoryRepository categoryRepository;
     private final HashtagRepository hashtagRepository;
     private final VideoMapper videoMapper;
-
+    private final NotificationService notificationService;
+    private final SubscriptionRepository subscriptionRepository;
+    private final OnlineUserService onlineUserService;
+    private final SimpMessagingTemplate messagingTemplate;
     private final S3Service s3Service;
 
     @Value("${aws.s3.bucket}")
@@ -144,6 +148,7 @@ public class VideoService {
         }
 
         // 4. Sử dụng Mapper để trả về Response Dto (tự động lấy fullName và avatar từ User)
+        notifySubscribers(user, savedVideo.getId(), savedVideo.getTitle());
         return videoMapper.toVideoResponseDto(savedVideo);
     }
 
@@ -172,6 +177,7 @@ public class VideoService {
         // 4. Cập nhật trạng thái
         video.setVideoStatus(VideoStatus.PUBLISHED);
         Video updatedVideo = videoRepository.save(video);
+        notifySubscribers(userPrincipal.getUser(), updatedVideo.getId(), updatedVideo.getTitle());
 
         // 5. Trả về thông tin video đã được cập nhật
         return videoMapper.toVideoResponseDto(updatedVideo);
@@ -213,6 +219,32 @@ public class VideoService {
 
         return videoMapper.toVideoResponseDto(video);
     }
+    private void notifySubscribers(User sender, Long videoId, String videoTitle) {
+        List<Subscription> subscriptions = subscriptionRepository.findByChannelId(sender.getId());
+
+        for (Subscription subscription : subscriptions) {
+            Long subscriberId = subscription.getSubscriber().getId();
+
+            // 1. Tạo notification trong DB
+            NotificationRequestDto dto = new NotificationRequestDto();
+            dto.setSenderId(sender.getId());
+            dto.setRecipientId(subscriberId);
+            dto.setReferenceId(videoId);
+            dto.setNotificationType(NotificationType.VIDEO);
+            dto.setMessage(sender.getFullName() + " vừa đăng tải video " + videoTitle);
+
+            NotificationResponseDto notificationResponse = notificationService.createNotification(dto);
+            System.out.println("SENT NOTIFICATION TO" + subscriberId);
 
 
+            // 2. Nếu subscriber đang online → push qua WebSocket
+            if (onlineUserService.isOnline(subscriberId)) {
+                messagingTemplate.convertAndSend(
+                        "/topic/notification/" + subscriberId,
+                        notificationResponse
+                );
+                System.out.println("sent notification to " + subscriberId);
+            }
+        }
+    }
 }

@@ -84,6 +84,9 @@ export default function ManageVideos() {
       fetchVideos(0, true);
     }
   }, [user]);
+  const handleVideoCreated = () => {
+    fetchVideos(0, true);
+  };
 
   if (!user) {
     return (
@@ -284,10 +287,10 @@ export default function ManageVideos() {
       </div>
 
       <dialog id="modal_share_video_youtube" className="modal">
-        <ModalShareVideoYouTube />
+        <ModalShareVideoYouTube onSuccess={handleVideoCreated} />
       </dialog>
       <dialog id="modal_upload_video" className="modal">
-        <ModalUploadVideo />
+        <ModalUploadVideo onSuccess={handleVideoCreated} />
       </dialog>
     </div>
   );

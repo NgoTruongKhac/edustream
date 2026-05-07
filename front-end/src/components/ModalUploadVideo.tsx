@@ -84,8 +84,11 @@ async function uploadToS3(presignedUrl: string, file: File): Promise<void> {
 }
 
 // ─── Component ───────────────────────────────────────────────────────────────
+interface Props {
+  onSuccess?: () => void;
+}
 
-export default function ModalUploadVideo() {
+export default function ModalUploadVideo({ onSuccess }: Props) {
   // File state
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);

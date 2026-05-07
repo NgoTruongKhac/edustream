@@ -18,14 +18,41 @@ import VideoWatch from "./pages/VideoWatch";
 import PlaylistVideos from "./pages/PlaylistVideos";
 import "./index.css";
 import { useThemeStore } from "./stores/useThemeStore";
+import { useSocketStore } from "./stores/useSocketStore";
+import { useUnreadNotificationStore } from "./stores/useUnReadNotificationStore";
 
 function App() {
-  const { checkAuthStatus } = useAuthStore();
+  const { checkAuthStatus, user, isAuthenticated } = useAuthStore();
   const { theme } = useThemeStore();
+  const { connect, disconnect } = useSocketStore();
+  const { fetchCount, increment } = useUnreadNotificationStore();
 
   useEffect(() => {
     checkAuthStatus();
   }, [checkAuthStatus]);
+
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      // 1. Lấy số unread hiện tại từ API
+      fetchCount();
+
+      // 2. Kết nối WebSocket và lắng nghe notification mới
+      connect(user.id, (_payload) => {
+        // Mỗi khi nhận notification mới → tăng badge lên 1
+        increment();
+        // Nếu muốn toast: toast.success("Bạn có thông báo mới!")
+      });
+    } else {
+      // Logout → ngắt kết nối
+      disconnect();
+    }
+
+    return () => {
+      // Cleanup khi unmount (hiếm gặp với App root)
+      disconnect();
+    };
+  }, [isAuthenticated, user?.id]);
+
   useEffect(() => {
     // Gán thuộc tính data-theme cho thẻ <html>
     document.documentElement.setAttribute("theme", theme);

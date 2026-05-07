@@ -54,6 +54,8 @@ public class SecurityConfig {
                         auth ->
                                 auth.requestMatchers("/api/v1/users/me").authenticated()
                                         .requestMatchers(HttpMethod.GET, "/api/v1/users/*").permitAll()
+                                        .requestMatchers("/ws/**").permitAll()
+                                        .requestMatchers("/ws").permitAll()
                                         .requestMatchers(PUBLIC_ENDPOINTS).permitAll()
                                         .anyRequest().authenticated())
                 .anonymous(anonymous -> anonymous.principal("anonymousUSer"))

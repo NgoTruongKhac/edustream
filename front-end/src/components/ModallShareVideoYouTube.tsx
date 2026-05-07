@@ -71,8 +71,11 @@ interface VideoInfo {
 }
 
 // ─── Component ───────────────────────────────────────────────────────────────
+interface Props {
+  onSuccess?: () => void;
+}
 
-export default function ModalShareVideoYouTube() {
+export default function ModalShareVideoYouTube({ onSuccess }: Props) {
   const [url, setUrl] = useState("");
   const [loading, setLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -191,6 +194,7 @@ export default function ModalShareVideoYouTube() {
 
       // 3. Xử lý thành công
       toast.success("Chia sẻ video thành công!");
+      onSuccess?.();
 
       // Reset form
       setUrl("");
