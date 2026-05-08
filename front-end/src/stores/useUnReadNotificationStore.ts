@@ -1,11 +1,14 @@
 import { create } from "zustand";
-import { getNumberUnreadNotifications } from "@/api/notificationApi";
+import {
+  getNumberUnreadNotifications,
+  markAllReadNotifications,
+} from "@/api/notificationApi";
 
 interface UnreadNotificationStore {
   count: number;
   fetchCount: () => Promise<void>;
   increment: () => void;
-  reset: () => void;
+  reset: () => Promise<void>;
 }
 
 export const useUnreadNotificationStore = create<UnreadNotificationStore>(
@@ -25,7 +28,16 @@ export const useUnreadNotificationStore = create<UnreadNotificationStore>(
     // Gọi khi nhận được notification mới qua WebSocket
     increment: () => set((state) => ({ count: state.count + 1 })),
 
-    // Gọi khi user bấm "đánh dấu đã đọc tất cả"
-    reset: () => set({ count: 0 }),
+    reset: async () => {
+      try {
+        await markAllReadNotifications();
+        const data = await getNumberUnreadNotifications();
+        set({
+          count: data.numberUnreadNotifications ?? 0,
+        });
+      } catch (error) {
+        console.error("Failed to mark notifications as read:", error);
+      }
+    },
   }),
 );

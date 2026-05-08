@@ -26,7 +26,7 @@ public class NotificationController {
     }
 
     @GetMapping
-    public ResponseEntity<PageResponse<NotificationResponseDto>> getAllNotifications(
+    public ResponseEntity<PageResponse<NotificationResponseDto>> getNotificationsByUser(
             @AuthenticationPrincipal UserPrincipal userPrincipal) {
         return ResponseEntity.ok(notificationService.getNotificationsByUserId(userPrincipal));
     }

@@ -12,6 +12,8 @@ import { useAuthStore } from "@/stores/useAuthStore";
 import { useThemeStore } from "@/stores/useThemeStore";
 import { themes } from "@/utils/themes";
 import { useUnreadNotificationStore } from "@/stores/useUnReadNotificationStore";
+import NotificationsDropdown from "./NotificationsDropdown";
+import { useState, useRef } from "react";
 
 interface NavbarProps {
   onOpenSidebar: () => void;
@@ -23,10 +25,16 @@ export default function Navbar({ onOpenSidebar }: NavbarProps) {
   const setTheme = useThemeStore((state) => state.setTheme);
   const themeNow = useThemeStore((s) => s.theme);
   const { count, reset } = useUnreadNotificationStore();
+  const [notifOpen, setNotifOpen] = useState(false);
+  const bellRef = useRef<HTMLButtonElement>(null);
 
   const handleLogout = () => {
     logout();
     window.location.href = "/";
+  };
+  const handleBellClick = () => {
+    setNotifOpen((prev) => !prev);
+    if (!notifOpen) reset();
   };
 
   return (
@@ -118,29 +126,39 @@ export default function Navbar({ onOpenSidebar }: NavbarProps) {
           </ul>
         </div>
         {user && (
-          <button
-            className="relative btn btn-ghost btn-circle text-base-content hover:text-primary hover:bg-primary/10 transition-colors"
-            title="Thông báo"
-          >
-            <Bell className="w-5 h-5" />
+          <div className="relative">
+            <button
+              ref={bellRef}
+              onClick={handleBellClick}
+              className="relative btn btn-ghost btn-circle text-base-content hover:text-primary hover:bg-primary/10 transition-colors"
+              title="Thông báo"
+            >
+              <Bell className="w-5 h-5" />
 
-            {count > 0 && (
-              <span
-                className="
-          absolute -top-1 -right-1
-          min-w-[18px] h-[18px]
-          px-1
-          rounded-full
-          bg-error text-error-content
-          text-[10px] font-bold
-          flex items-center justify-center
-          leading-none
-        "
-              >
-                {count > 99 ? "99+" : count}
-              </span>
-            )}
-          </button>
+              {count > 0 && (
+                <span
+                  className="
+                    absolute -top-1 -right-1
+                    min-w-[18px] h-[18px]
+                    px-1
+                    rounded-full
+                    bg-error text-error-content
+                    text-[10px] font-bold
+                    flex items-center justify-center
+                    leading-none
+                  "
+                >
+                  {count > 99 ? "99+" : count}
+                </span>
+              )}
+            </button>
+
+            {/* Dropdown rendered below the bell */}
+            <NotificationsDropdown
+              open={notifOpen}
+              onClose={() => setNotifOpen(false)}
+            />
+          </div>
         )}
 
         {user ? (

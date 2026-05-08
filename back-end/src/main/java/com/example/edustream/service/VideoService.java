@@ -234,8 +234,6 @@ public class VideoService {
             dto.setMessage(sender.getFullName() + " vừa đăng tải video " + videoTitle);
 
             NotificationResponseDto notificationResponse = notificationService.createNotification(dto);
-            System.out.println("SENT NOTIFICATION TO" + subscriberId);
-
 
             // 2. Nếu subscriber đang online → push qua WebSocket
             if (onlineUserService.isOnline(subscriberId)) {
@@ -243,7 +241,6 @@ public class VideoService {
                         "/topic/notification/" + subscriberId,
                         notificationResponse
                 );
-                System.out.println("sent notification to " + subscriberId);
             }
         }
     }
