@@ -333,7 +333,7 @@ export default function ModalUploadVideo({ onSuccess }: Props) {
           <label className="label py-0">
             <span className="label-text font-medium text-sm">Hashtag</span>
           </label>
-          <div className="flex flex-wrap gap-2 p-3 border border-base-300 rounded-xl min-h-10 bg-base-200/40">
+          <div className="flex flex-wrap gap-2 p-3 rounded-xl min-h-10">
             {hashtags.map((tag) => (
               <div
                 key={tag}

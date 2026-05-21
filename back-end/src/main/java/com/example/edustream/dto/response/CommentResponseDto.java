@@ -13,4 +13,5 @@ public class CommentResponseDto {
     private String fullName;
     private String username;
     private String avatar;
+    private long replyCount;
 }

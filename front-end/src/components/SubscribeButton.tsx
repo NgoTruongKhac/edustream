@@ -68,7 +68,7 @@ const SubscribeButton = ({ username, size = "md" }: Props) => {
       onClick={handleSubscribeClick}
       disabled={isActionLoading}
       className={`btn rounded-xl text-sm font-bold transition-all
-    ${isSubscribed ? "btn-neutral border-none" : "btn-primary"}
+    ${isSubscribed ? "btn-primary" : "btn-primary"}
     ${isActionLoading ? "loading" : ""} 
   `}
     >

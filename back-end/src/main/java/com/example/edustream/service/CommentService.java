@@ -2,10 +2,14 @@ package com.example.edustream.service;
 
 import com.example.edustream.dto.request.CommentRequestDto;
 import com.example.edustream.dto.request.LikeCommentRequestDto;
+import com.example.edustream.dto.request.NotificationRequestDto;
 import com.example.edustream.dto.request.ReplyCommentRequestDto;
 import com.example.edustream.dto.response.CommentResponseDto;
+import com.example.edustream.dto.response.NotificationResponseDto;
 import com.example.edustream.dto.response.PageResponse;
 import com.example.edustream.entity.*;
+import com.example.edustream.entity.enums.NotificationType;
+import com.example.edustream.exception.ResourceNotFoundException;
 import com.example.edustream.mapper.CommentMapper;
 import com.example.edustream.repository.CommentLikeRepository;
 import com.example.edustream.repository.CommentRepository;
@@ -14,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,6 +32,9 @@ public class CommentService {
     private final CommentLikeRepository commentLikeRepository;
     private final VideoRepository videoRepository;
     private final CommentMapper commentMapper; // Inject CommentMapper
+    private final NotificationService notificationService;
+    private final OnlineUserService onlineUserService;
+    private final SimpMessagingTemplate messagingTemplate;
 
     // 1. CREATE COMMENT (Bình luận gốc)
     @Transactional
@@ -43,7 +51,18 @@ public class CommentService {
 
         Comment savedComment = commentRepository.save(comment);
 
-        // Sử dụng Mapper thay cho hàm thủ công
+        // Gửi Notification cho chủ Video
+        // Chỉ gửi nếu người comment không phải là chủ video
+        if (!video.getUser().getId().equals(currentUser.getId())) {
+            sendInteractionNotification(
+                    currentUser,
+                    video.getUser().getId(),
+                    video.getId(),
+                    NotificationType.COMMENT,
+                    currentUser.getFullName() + " đã bình luận trong video: " + video.getTitle()
+            );
+        }
+
         return commentMapper.toCommentResponseDto(savedComment);
     }
 
@@ -69,7 +88,17 @@ public class CommentService {
         parentComment.setReplyCount(parentComment.getReplyCount() + 1);
         commentRepository.save(parentComment);
 
-        // Sử dụng Mapper
+        // Gửi Notification cho chủ của bình luận gốc
+        if (!parentComment.getUser().getId().equals(currentUser.getId())) {
+            sendInteractionNotification(
+                    currentUser,
+                    parentComment.getUser().getId(),
+                    video.getId(),
+                    NotificationType.REPLY_COMMENT,
+                    currentUser.getFullName() + " đã trả lời bình luận của bạn trong video: " + video.getTitle()
+            );
+        }
+
         return commentMapper.toCommentResponseDto(savedReply);
     }
 
@@ -92,24 +121,62 @@ public class CommentService {
             newLike.setUser(currentUser);
             commentLikeRepository.save(newLike);
             comment.setLikeCount(comment.getLikeCount() + 1);
+
+            // Gửi Notification LIKE cho chủ của comment
+            // Lưu ý: referenceId ở đây vẫn là videoId để user click vào thông báo sẽ dẫn tới video
+            if (!comment.getUser().getId().equals(currentUser.getId())) {
+                sendInteractionNotification(
+                        currentUser,
+                        comment.getUser().getId(),
+                        comment.getVideo().getId(),
+                        NotificationType.LIKE,
+                        currentUser.getFullName() + " đã thích bình luận của bạn trong video: " + comment.getVideo().getTitle()
+                );
+            }
         }
     }
-    @Transactional(readOnly = true) // Tối ưu hiệu suất cho tác vụ chỉ đọc
+
+    /**
+     * Hàm helper dùng chung để gửi notification qua DB và Socket
+     */
+    private void sendInteractionNotification(User sender, Long recipientId, Long videoId, NotificationType type, String message) {
+        // 1. Tạo notification trong DB thông qua NotificationService
+        NotificationRequestDto notifDto = new NotificationRequestDto();
+        notifDto.setSenderId(sender.getId());
+        notifDto.setRecipientId(recipientId);
+        notifDto.setReferenceId(videoId);
+        notifDto.setNotificationType(type);
+        notifDto.setMessage(message);
+
+        NotificationResponseDto notificationResponse = notificationService.createNotification(notifDto);
+
+        // 2. Gửi Real-time qua WebSocket nếu recipient online
+        if (onlineUserService.isOnline(recipientId)) {
+            messagingTemplate.convertAndSend(
+                    "/topic/notification/" + recipientId,
+                    notificationResponse
+            );
+        }
+    }
+
+    @Transactional(readOnly = true)
     public PageResponse<CommentResponseDto> getComments(Long videoId, int page) {
-        // Kiểm tra xem video có tồn tại không (Tuỳ chọn, nhưng giúp trả về lỗi rõ ràng hơn)
         videoRepository.findById(videoId)
-                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy Video"));
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy Video"));
 
-        int pageSize = 10;
-        Pageable pageable = PageRequest.of(page, pageSize);
+        return new PageResponse<>(commentRepository.findByVideoIdAndParentIsNullOrderByCreatedAtDesc(
+                videoId, PageRequest.of(page, 10)).map(commentMapper::toCommentResponseDto));
+    }
 
-        // Lấy danh sách comment gốc từ Database
-        Page<Comment> commentPage = commentRepository.findByVideoIdAndParentIsNullOrderByCreatedAtDesc(videoId, pageable);
+    @Transactional(readOnly = true)
+    public PageResponse<CommentResponseDto> getRepliesByCommentId(Long commentId, int page) {
+        // Kiểm tra comment cha tồn tại
+        commentRepository.findById(commentId)
+                .orElseThrow(() -> new ResourceNotFoundException("Bình luận gốc không tồn tại"));
 
-        // Chuyển đổi từ Entity sang Dto bằng MapStruct
-        Page<CommentResponseDto> dtoPage = commentPage.map(commentMapper::toCommentResponseDto);
+        Pageable pageable = PageRequest.of(page, 5); // Thường reply load mỗi lần 5 cái
+        Page<Comment> replyPage = commentRepository.findByParentIdOrderByCreatedAtAsc(commentId, pageable);
 
-        // Trả về wrapper PageResponse của bạn
-        return new PageResponse<>(dtoPage);
+        return new PageResponse<>(replyPage.map(commentMapper::toCommentResponseDto));
     }
 }

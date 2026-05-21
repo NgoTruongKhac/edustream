@@ -6,7 +6,6 @@ import {
 } from "@/api/playlistApi";
 import { ListVideo, Plus, Check, X, Loader2, Bookmark } from "lucide-react";
 import toast from "react-hot-toast";
-import { useParams } from "react-router-dom";
 
 interface PlaylistResponseDto {
   playlistId: string;
@@ -16,9 +15,11 @@ interface PlaylistResponseDto {
   inPlaylist: boolean;
 }
 
-export default function ModalPlaylist() {
-  const { videoId } = useParams();
+interface Props {
+  videoId: number;
+}
 
+export default function ModalPlaylist({ videoId }: Props) {
   const [playlists, setPlaylists] = useState<PlaylistResponseDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [addingTo, setAddingTo] = useState<string | null>(null);

@@ -3,6 +3,8 @@ package com.example.edustream.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import software.amazon.awssdk.services.s3.S3Client; // Thêm import này
+import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest;
@@ -15,6 +17,7 @@ import java.time.Duration;
 public class S3Service {
 
     private final S3Presigner s3Presigner;
+    private final S3Client s3Client; // Inject thêm S3Client để thực thi lệnh xóa
 
     @Value("${aws.s3.bucket}")
     private String bucketName;
@@ -26,7 +29,6 @@ public class S3Service {
                 .contentType(contentType)
                 .build();
 
-        // Cấu hình URL có hiệu lực trong 15 phút
         PutObjectPresignRequest presignRequest = PutObjectPresignRequest.builder()
                 .signatureDuration(Duration.ofMinutes(15))
                 .putObjectRequest(objectRequest)
@@ -34,5 +36,14 @@ public class S3Service {
 
         PresignedPutObjectRequest presignedRequest = s3Presigner.presignPutObject(presignRequest);
         return presignedRequest.url().toString();
+    }
+
+    // Hàm xóa object trên S3
+    public void deleteFile(String objectKey) {
+        DeleteObjectRequest deleteObjectRequest = DeleteObjectRequest.builder()
+                .bucket(bucketName)
+                .key(objectKey)
+                .build();
+        s3Client.deleteObject(deleteObjectRequest);
     }
 }

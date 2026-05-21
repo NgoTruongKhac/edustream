@@ -1,5 +1,7 @@
 package com.example.edustream.controller;
 
+import com.example.edustream.dto.request.VideoFilterRequestDto;
+import com.example.edustream.dto.request.VideoUpdateRequestDto;
 import com.example.edustream.dto.request.VideoUploadRequestDto;
 import com.example.edustream.dto.request.VideoYoutubeRequestDto;
 import com.example.edustream.dto.response.PageResponse;
@@ -60,6 +62,36 @@ public class VideoController {
         // Trả về dữ liệu kèm theo status 200 OK
         return ResponseEntity.ok(response);
     }
+    @GetMapping("/all")
+    public ResponseEntity<PageResponse<VideoResponseDto>> getAllVideos(
+            @RequestParam(value = "page", defaultValue = "0") int page) {
+
+        // Gọi service xử lý logic
+        PageResponse<VideoResponseDto> response = videoService.getAllVideos(page);
+
+        // Trả về dữ liệu kèm theo status 200 OK
+        return ResponseEntity.ok(response);
+    }
+
+    // Đã đổi endpoint thành /category để tránh lỗi Ambiguous mapping với getVideosByCurrentUser()
+    @GetMapping("/category")
+    public ResponseEntity<PageResponse<VideoResponseDto>> getVideosByCategory(
+            @RequestParam String category,
+            @RequestParam(value = "page", defaultValue = "0") int page) {
+
+        // Gọi service xử lý logic
+        PageResponse<VideoResponseDto> response = videoService.getVideosByCategory(category, page);
+
+        // Trả về dữ liệu kèm theo status 200 OK
+        return ResponseEntity.ok(response);
+    }
+    @GetMapping("/filter") // Đổi tên endpoint cho mang tính tổng quát
+    public ResponseEntity<PageResponse<VideoResponseDto>> filterVideos(
+            @Valid @ModelAttribute VideoFilterRequestDto filterDto) {
+
+        PageResponse<VideoResponseDto> response = videoService.filterVideos(filterDto);
+        return ResponseEntity.ok(response);
+    }
     // Nhớ import các class DTO mới tạo
     @PostMapping("/upload")
     public ResponseEntity<VideoUploadResponseDto> requestUploadUrl(
@@ -79,5 +111,23 @@ public class VideoController {
 
         // Trả về dữ liệu kèm theo status 200 OK
         return ResponseEntity.ok(responseDto);
+    }
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteVideoByVideoId(
+            @PathVariable long id,
+            @AuthenticationPrincipal UserPrincipal userPrincipal) {
+        videoService.deleteVideoById(id, userPrincipal);
+        return ResponseEntity.noContent().build();
+    }
+    // Thêm endpoint vào VideoController
+    @PutMapping("/{videoId}")
+    public ResponseEntity<VideoUploadResponseDto> updateVideo(
+            @PathVariable Long videoId,
+            @Valid @RequestBody VideoUpdateRequestDto requestDto,
+            @AuthenticationPrincipal UserPrincipal userPrincipal) {
+
+        VideoUploadResponseDto response = videoService.updateVideo(videoId, requestDto, userPrincipal);
+
+        return ResponseEntity.ok(response);
     }
 }

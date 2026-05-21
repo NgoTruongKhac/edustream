@@ -22,6 +22,7 @@ export interface CommentResponseDto {
   fullName: string;
   username: string;
   avatar: string;
+  replyCount: number;
   replies?: CommentResponseDto[];
   likedByMe?: boolean;
 }
@@ -48,5 +49,13 @@ export const replyComment = async (
 
 export const getComments = async (videoId: number, page: number = 0) => {
   const res = await api.get(`/comments/${videoId}?page=${page}`);
+  return res.data;
+};
+
+export const getRepliesByCommentId = async (
+  commentId: number,
+  page: number = 0,
+) => {
+  const res = await api.get(`/comments/reply/${commentId}?page=${page}`);
   return res.data;
 };

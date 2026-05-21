@@ -239,7 +239,7 @@ export default function Channel() {
                   <button
                     onClick={handleLoadMore}
                     disabled={videosLoading}
-                    className="btn bg-primary text-base-content btn-sm rounded-xl px-6"
+                    className="btn bg-primary text-primary-content btn-sm rounded-xl px-6"
                   >
                     {videosLoading ? "Đang tải..." : "Xem thêm"}
                   </button>

@@ -358,7 +358,7 @@ export default function ModalShareVideoYouTube({ onSuccess }: Props) {
                 </span>
               </label>
               {hashtags.length > 0 ? (
-                <div className="flex flex-wrap gap-2 p-3 border border-base-300 rounded-xl min-h-10 bg-base-200/40">
+                <div className="flex flex-wrap gap-2 p-3 rounded-xl min-h-10">
                   {hashtags.map((tag) => (
                     <div
                       key={tag}
@@ -446,11 +446,11 @@ export default function ModalShareVideoYouTube({ onSuccess }: Props) {
               </select>
 
               {categories.length > 0 && (
-                <div className="flex flex-wrap gap-2 p-3 border border-base-300 rounded-xl bg-base-200/40">
+                <div className="flex flex-wrap gap-2 p-3 rounded-xl">
                   {categories.map((cat) => (
                     <div
                       key={cat}
-                      className="badge badge-secondary gap-1 pr-1 text-xs font-medium"
+                      className="badge badge-primary gap-1 pr-1 text-xs font-medium"
                     >
                       {cat}
                       <button

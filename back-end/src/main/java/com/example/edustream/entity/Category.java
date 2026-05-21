@@ -4,6 +4,9 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.HashSet;
+import java.util.Set;
+
 @Entity
 @Table(name = "categories")
 @Getter
@@ -16,8 +19,7 @@ public class Category extends AbstractEntity<Category>{
     @Column(name = "slug_name")
     private String slugName;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "video_id", nullable = false)
-    private Video video;
+    @ManyToMany(mappedBy = "categories")
+    private Set<Video> videos = new HashSet<>();
 
 }

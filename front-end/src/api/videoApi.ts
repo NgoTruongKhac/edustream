@@ -34,6 +34,18 @@ export const getVideoById = async (videoId: number) => {
   return repsponse.data;
 };
 
+export interface VideoFilterRequestDto {
+  category?: string;
+  page?: number;
+  size?: number;
+  sortBy?: "newest" | "oldest";
+}
+
+export const filterVideos = async (params: VideoFilterRequestDto = {}) => {
+  const response = await api.get("/videos/filter", { params });
+  return response.data;
+};
+
 export interface VideoUploadRequestDto {
   title: string;
   description: string;
@@ -63,5 +75,35 @@ export const createVideoUpload = async (
 
 export const confirmVideoUpload = async (videoId: number) => {
   const response = await api.patch(`/videos/${videoId}/confirm`);
+  return response.data;
+};
+
+export const deleteVideoById = async (id: number) => {
+  const response = await api.delete(`/videos/${id}`);
+  return response.data;
+};
+
+export interface VideoUpdateRequestDto {
+  title?: string;
+  description?: string;
+  thumbnailFileName?: string;
+  thumbnailContentType?: string;
+  categories?: string[];
+  hashtags?: string[];
+}
+
+export interface VideoUpdateResponseDto {
+  videoInfo: {
+    id: number;
+    title: string;
+  };
+  thumbnailPresignedUrl?: string;
+}
+
+export const updateVideo = async (
+  videoId: number,
+  data: VideoUpdateRequestDto,
+): Promise<VideoUpdateResponseDto> => {
+  const response = await api.put(`/videos/${videoId}`, data);
   return response.data;
 };

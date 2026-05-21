@@ -6,6 +6,7 @@ import { ThumbsUp, Share2, Bookmark, Eye } from "lucide-react";
 import SubscribeButton from "@/components/SubscribeButton";
 import { useAuthStore } from "@/stores/useAuthStore";
 import ModalPlaylist from "@/components/ModalPlaylist";
+import { number } from "zod";
 
 // --- Types ---
 interface VideoResponseDto {
@@ -335,7 +336,7 @@ export default function VideoWatch() {
       </div>
 
       <dialog id="modal_playlist" className="modal">
-        <ModalPlaylist />
+        <ModalPlaylist videoId={Number(videoId)} />
       </dialog>
     </div>
   );

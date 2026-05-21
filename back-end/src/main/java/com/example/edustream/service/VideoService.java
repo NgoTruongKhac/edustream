@@ -1,8 +1,6 @@
 package com.example.edustream.service;
 
-import com.example.edustream.dto.request.NotificationRequestDto;
-import com.example.edustream.dto.request.VideoUploadRequestDto;
-import com.example.edustream.dto.request.VideoYoutubeRequestDto;
+import com.example.edustream.dto.request.*;
 import com.example.edustream.dto.response.NotificationResponseDto;
 import com.example.edustream.dto.response.PageResponse;
 import com.example.edustream.dto.response.VideoResponseDto;
@@ -25,10 +23,12 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -82,76 +82,56 @@ public class VideoService {
             thumbnailPresignedUrl = s3Service.generatePresignedUrl(thumbObjectKey, request.getThumbnailContentType());
         }
 
+
+        processCategoriesAndHashtags(video, request.getCategories(), request.getHashtags());
         Video savedVideo = videoRepository.save(video);
-
-        if (request.getHashtags() != null && !request.getHashtags().isEmpty()) {
-            List<Hashtag> hashtags = request.getHashtags().stream().map(name -> {
-                Hashtag hashtag = new Hashtag();
-                hashtag.setHashtagName(name);
-                hashtag.setVideo(savedVideo);
-                return hashtag;
-            }).collect(Collectors.toList());
-            hashtagRepository.saveAll(hashtags);
-        }
-
-        // 3. Tạo và lưu danh sách Categories với Slug
-        if (request.getCategories() != null && !request.getCategories().isEmpty()) {
-            List<Category> categories = request.getCategories().stream().map(name -> {
-                Category category = new Category();
-                category.setCategoryName(name);
-                category.setSlugName(StringUtil.generateSlug(name));
-                category.setVideo(savedVideo);
-                return category;
-            }).collect(Collectors.toList());
-            categoryRepository.saveAll(categories);
-        }
 
 // 3. Gọi S3Service để lấy Presigned URL cho VIDEO
         String presignedUrl = s3Service.generatePresignedUrl(objectKey, request.getContentType());
 
-        // 4. Trả về thông tin
-        VideoResponseDto videoInfo = videoMapper.toVideoResponseDto(savedVideo);
-        return new VideoUploadResponseDto(videoInfo, presignedUrl, thumbnailPresignedUrl);
+        return new VideoUploadResponseDto(videoMapper.toVideoResponseDto(savedVideo), presignedUrl, thumbnailPresignedUrl);
     }
-
     @Transactional
     public VideoResponseDto createVideoYoutube(VideoYoutubeRequestDto request, UserPrincipal userPrincipal) {
         User user = userPrincipal.getUser();
-
-        // 1. Sử dụng Mapper để chuyển DTO sang Entity
         Video video = videoMapper.toVideo(request);
-        video.setUser(user); // Set User lấy từ Security Context
+        video.setUser(user);
+
+        // --- PHẦN REFACTOR: Xử lý Hashtags & Categories (N-N) ---
+        processCategoriesAndHashtags(video, request.getCategories(), request.getHashtags());
 
         Video savedVideo = videoRepository.save(video);
-
-        // 2. Tạo và lưu danh sách Hashtags
-        if (request.getHashtags() != null && !request.getHashtags().isEmpty()) {
-            List<Hashtag> hashtags = request.getHashtags().stream().map(name -> {
-                Hashtag hashtag = new Hashtag();
-                hashtag.setHashtagName(name);
-                hashtag.setVideo(savedVideo);
-                return hashtag;
-            }).collect(Collectors.toList());
-            hashtagRepository.saveAll(hashtags);
-        }
-
-        // 3. Tạo và lưu danh sách Categories với Slug
-        if (request.getCategories() != null && !request.getCategories().isEmpty()) {
-            List<Category> categories = request.getCategories().stream().map(name -> {
-                Category category = new Category();
-                category.setCategoryName(name);
-                category.setSlugName(StringUtil.generateSlug(name));
-                category.setVideo(savedVideo);
-                return category;
-            }).collect(Collectors.toList());
-            categoryRepository.saveAll(categories);
-        }
-
-        // 4. Sử dụng Mapper để trả về Response Dto (tự động lấy fullName và avatar từ User)
         notifySubscribers(user, savedVideo.getId(), savedVideo.getTitle());
         return videoMapper.toVideoResponseDto(savedVideo);
     }
+    private void processCategoriesAndHashtags(Video video, List<String> categoryNames, List<String> hashtagNames) {
+        // 1. Xử lý Categories
+        if (categoryNames != null) {
+            Set<Category> categories = categoryNames.stream().map(name ->
+                    categoryRepository.findByCategoryName(name)
+                            .orElseGet(() -> {
+                                Category newCat = new Category();
+                                newCat.setCategoryName(name);
+                                newCat.setSlugName(StringUtil.generateSlug(name));
+                                return categoryRepository.save(newCat);
+                            })
+            ).collect(Collectors.toSet());
+            video.setCategories(categories);
+        }
 
+        // 2. Xử lý Hashtags
+        if (hashtagNames != null) {
+            Set<Hashtag> hashtags = hashtagNames.stream().map(name ->
+                    hashtagRepository.findByHashtagName(name)
+                            .orElseGet(() -> {
+                                Hashtag newTag = new Hashtag();
+                                newTag.setHashtagName(name);
+                                return hashtagRepository.save(newTag);
+                            })
+            ).collect(Collectors.toSet());
+            video.setHashtags(hashtags);
+        }
+    }
     @Transactional
     public VideoResponseDto confirmVideoUpload(Long videoId, UserPrincipal userPrincipal) {
         // 1. Tìm video theo ID
@@ -181,6 +161,59 @@ public class VideoService {
 
         // 5. Trả về thông tin video đã được cập nhật
         return videoMapper.toVideoResponseDto(updatedVideo);
+    }
+    public PageResponse<VideoResponseDto> getAllVideos(int page) {
+        // Cấu hình phân trang: 10 item/trang, sắp xếp giảm dần theo thời gian tạo
+        Pageable pageable = PageRequest.of(page, 10, Sort.by("createdAt").descending());
+
+        // Lấy tất cả video
+        Page<Video> videoPage = videoRepository.findAll(pageable);
+
+        // Map sang DTO và trả về
+        Page<VideoResponseDto> dtoPage = videoPage.map(videoMapper::toVideoResponseDto);
+        return new PageResponse<>(dtoPage);
+    }
+    public PageResponse<VideoResponseDto> filterVideos(VideoFilterRequestDto filterDto) {
+        // 1. Xác định cách sắp xếp từ DTO
+        Sort sort = determineSort(filterDto.getSortBy());
+
+        // 2. Cấu hình phân trang kết hợp sắp xếp động (sử dụng page và size từ DTO)
+        Pageable pageable = PageRequest.of(filterDto.getPage(), filterDto.getSize(), sort);
+
+        Page<Video> videoPage;
+
+        // 3. Xử lý logic lọc (Có thể dùng Specification nếu logic lọc phức tạp hơn)
+        if (filterDto.getCategory() != null && !filterDto.getCategory().isEmpty()) {
+            videoPage = videoRepository.findVideosByCategory(filterDto.getCategory(), pageable);
+        } else {
+            videoPage = videoRepository.findAll(pageable); // Nếu không truyền category thì lấy hết
+        }
+
+        // 4. Map và trả về
+        Page<VideoResponseDto> dtoPage = videoPage.map(videoMapper::toVideoResponseDto);
+        return new PageResponse<>(dtoPage);
+    }
+    // Hàm Helper dùng chung để lấy ra object Sort
+    private Sort determineSort(String sortBy) {
+        if (sortBy == null) return Sort.by("createdAt").descending(); // Default
+
+        return switch (sortBy.toLowerCase()) {
+            case "oldest" -> Sort.by("createdAt").ascending();
+            case "newest" -> Sort.by("createdAt").descending();
+            default -> Sort.by("createdAt").descending(); // Fallback nếu user nhập sai
+        };
+    }
+
+    public PageResponse<VideoResponseDto> getVideosByCategory(String category, int page) {
+        // Cấu hình phân trang: 10 item/trang, sắp xếp giảm dần theo thời gian tạo
+        Pageable pageable = PageRequest.of(page, 10, Sort.by("createdAt").descending());
+
+        // Lấy video thông qua custom query trong repository
+        Page<Video> videoPage = videoRepository.findVideosByCategory(category, pageable);
+
+        // Map sang DTO và trả về
+        Page<VideoResponseDto> dtoPage = videoPage.map(videoMapper::toVideoResponseDto);
+        return new PageResponse<>(dtoPage);
     }
 
     public PageResponse<VideoResponseDto> getVideosByCurrentUser(UserPrincipal userPrincipal, int page) {
@@ -214,11 +247,90 @@ public class VideoService {
     }
 
     public VideoResponseDto getVideoById(long videoId) {
-        Video video = videoRepository.findById(videoId)
+        Video video = videoRepository.findByIdWithDetails(videoId)
                 .orElseThrow(() -> new ResourceNotFoundException("Video không tồn tại với ID: " + videoId));
 
         return videoMapper.toVideoResponseDto(video);
     }
+    @Transactional
+    public VideoUploadResponseDto updateVideo(long videoId, VideoUpdateRequestDto request, UserPrincipal userPrincipal) {
+        // 1. Tìm video và kiểm tra quyền sở hữu
+        Video video = videoRepository.findById(videoId)
+                .orElseThrow(() -> new ResourceNotFoundException("Video không tồn tại với ID: " + videoId));
+
+        if (!video.getUser().getId().equals(userPrincipal.getUser().getId())) {
+            throw new AccessDeniedException("Bạn không có quyền cập nhật video này!");
+        }
+
+        // 2. Cập nhật thông tin cơ bản của Video
+        if (request.getTitle() != null) video.setTitle(request.getTitle());
+        if (request.getDescription() != null) video.setDescription(request.getDescription());
+        if (request.getCategories() != null || request.getHashtags() != null) {
+            processCategoriesAndHashtags(video, request.getCategories(), request.getHashtags());
+        }
+
+        // 5. Cập nhật Thumbnail & Xử lý AWS S3
+        String thumbnailPresignedUrl = null;
+        if (request.getThumbnailFileName() != null && request.getThumbnailContentType() != null) {
+
+            // 5.1. Xóa ảnh cũ trên S3 nếu tồn tại
+            if (video.getThumbnail() != null) {
+                String oldKey = extractS3KeyFromUrl(video.getThumbnail());
+                if (oldKey != null) {
+                    try {
+                        s3Service.deleteFile(oldKey);
+                    } catch (Exception e) {
+                        // Log lỗi nhưng không chặn quá trình update nếu xóa file cũ thất bại
+                        System.err.println("Failed to delete old thumbnail: " + e.getMessage());
+                    }
+                }
+            }
+
+            // 5.2. Cấu hình thông tin ảnh mới
+            String uniqueFileName = java.util.UUID.randomUUID() + "_" + request.getThumbnailFileName();
+            String objectKey = "thumbnails/" + uniqueFileName;
+            String publicUrl = String.format("https://%s.s3.%s.amazonaws.com/%s", bucketName, region, objectKey);
+
+            video.setThumbnail(publicUrl);
+
+            // 5.3. Tạo Presigned URL để client upload ảnh mới lên S3
+            thumbnailPresignedUrl = s3Service.generatePresignedUrl(objectKey, request.getThumbnailContentType());
+        }
+
+        // 6. Lưu và trả về kết quả
+        Video savedVideo = videoRepository.save(video);
+        VideoResponseDto videoInfo = videoMapper.toVideoResponseDto(savedVideo);
+        return new VideoUploadResponseDto(videoInfo, null, thumbnailPresignedUrl);
+    }
+
+    private String extractS3KeyFromUrl(String url) {
+        if (url == null || !url.contains(".amazonaws.com/")) return null;
+        try {
+            return url.split(".amazonaws.com/")[1];
+        } catch (Exception e) {
+            return null;
+        }
+    }
+    @Transactional
+    public void deleteVideoById(long videoId, UserPrincipal userPrincipal) {
+
+        // 1. Tìm video
+        Video video = videoRepository.findById(videoId)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Video không tồn tại với ID: " + videoId));
+
+        // 2. Kiểm tra quyền sở hữu
+        Long ownerId = video.getUser().getId();
+        Long currentUserId = userPrincipal.getUser().getId();
+
+        if (!ownerId.equals(currentUserId)) {
+            throw new AccessDeniedException("Bạn không có quyền xoá video này!");
+        }
+
+        // 3. Xoá video
+        videoRepository.delete(video);
+    }
+
     private void notifySubscribers(User sender, Long videoId, String videoTitle) {
         List<Subscription> subscriptions = subscriptionRepository.findByChannelId(sender.getId());
 

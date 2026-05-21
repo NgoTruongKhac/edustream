@@ -3,7 +3,7 @@ import RequireAuth from "@/components/RequireAuth";
 import { useAuthStore } from "@/stores/useAuthStore";
 import { getVideosByCurrentUser } from "@/api/videoApi";
 import {
-  Link,
+  Link as LinkIcon,
   CloudUpload,
   Filter,
   ListFilter,
@@ -14,17 +14,25 @@ import {
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import ModalUploadVideo from "@/components/ModalUploadVideo";
+import { Link } from "react-router-dom";
+import ModalConfirmDelete from "@/components/ModalConfirmDelete";
+import ModalEditVideo, {
+  type VideoEditData,
+} from "@/components/ModalEditVideo";
 
 // --- Types ---
 interface VideoResponseDto {
-  id: string;
+  id: number;
   title: string;
+  description: string; // thêm
   thumbnail: string;
   duration: number;
   videoType: "YOUTUBE" | "UPLOAD";
   videoYoutubeUrl: string;
   fullName: string;
   avatar: string;
+  categories: string[]; // thêm
+  hashtags: string[]; // thêm
   createdAt: string;
 }
 
@@ -59,6 +67,9 @@ export default function ManageVideos() {
   const [isLastPage, setIsLastPage] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [selectedVideoId, setSelectedVideoId] = useState<number | null>(null);
+  const [selectedEditVideo, setSelectedEditVideo] =
+    useState<VideoEditData | null>(null);
 
   const fetchVideos = async (page: number, replace = false) => {
     setIsLoading(true);
@@ -120,7 +131,7 @@ export default function ManageVideos() {
               }
               className="btn btn-outline btn-ghost border-base-300 shadow-sm rounded-xl px-5 normal-case text-base-content"
             >
-              <Link size={18} />
+              <LinkIcon size={18} />
               Chia sẻ từ YouTube
             </button>
 
@@ -198,14 +209,17 @@ export default function ManageVideos() {
                       className="rounded-xl p-3 grid grid-cols-12 gap-4 items-center hover:shadow-soft transition-shadow bg-base-100"
                     >
                       {/* Col 1: Video Info */}
-                      <div className="col-span-5 flex gap-4 items-center">
+                      <Link
+                        to={`/watch/${video.id}`}
+                        className="col-span-5 flex gap-4 items-center"
+                      >
                         <div className="relative w-36 h-20 rounded-lg overflow-hidden shrink-0 bg-gray-900">
                           <img
                             src={video.thumbnail}
                             alt={video.title}
                             className="w-full h-full object-cover opacity-80"
                           />
-                          <span className="absolute bottom-1 right-1 bg-black/80 text-base-content text-[10px] font-medium px-1.5 py-0.5 rounded">
+                          <span className="absolute bottom-1 right-1 bg-black/80 text-white text-[10px] font-medium px-1.5 py-0.5 rounded">
                             {formatDuration(video.duration)}
                           </span>
                         </div>
@@ -224,7 +238,7 @@ export default function ManageVideos() {
                             </p>
                           </div>
                         </div>
-                      </div>
+                      </Link>
 
                       {/* Col 2: Video Type */}
                       <div className="col-span-2">
@@ -253,10 +267,38 @@ export default function ManageVideos() {
 
                       {/* Col 4: Actions */}
                       <div className="col-span-2 flex justify-center gap-1">
-                        <button className="btn btn-ghost btn-sm btn-circle text-gray-500 hover:text-primary">
+                        <button
+                          onClick={() => {
+                            setSelectedEditVideo({
+                              id: video.id,
+                              title: video.title,
+                              description: video.description ?? "",
+                              categories: video.categories ?? [],
+                              hashtags: video.hashtags ?? [],
+                              thumbnail: video.thumbnail,
+                            });
+                            (
+                              document.getElementById(
+                                "modal_edit_video",
+                              ) as HTMLDialogElement
+                            )?.showModal();
+                          }}
+                          className="btn btn-ghost btn-sm btn-circle text-gray-500 hover:text-primary"
+                        >
                           <Pencil size={18} />
                         </button>
-                        <button className="btn btn-ghost btn-sm btn-circle text-gray-500 hover:text-red-500">
+                        <button
+                          onClick={() => {
+                            setSelectedVideoId(video.id);
+
+                            (
+                              document.getElementById(
+                                "modal_confirm_delete",
+                              ) as HTMLDialogElement
+                            )?.showModal();
+                          }}
+                          className="btn btn-ghost btn-sm btn-circle text-gray-500 hover:text-red-500"
+                        >
                           <Trash2 size={18} />
                         </button>
                       </div>
@@ -291,6 +333,24 @@ export default function ManageVideos() {
       </dialog>
       <dialog id="modal_upload_video" className="modal">
         <ModalUploadVideo onSuccess={handleVideoCreated} />
+      </dialog>
+      <dialog id="modal_confirm_delete" className="modal">
+        {selectedVideoId && (
+          <ModalConfirmDelete
+            modalId="modal_confirm_delete"
+            videoId={selectedVideoId}
+            title="Bạn muốn xoá video này?"
+            onSuccess={() => fetchVideos(0, true)}
+          />
+        )}
+      </dialog>
+      <dialog id="modal_edit_video" className="modal">
+        {selectedEditVideo && (
+          <ModalEditVideo
+            video={selectedEditVideo}
+            onSuccess={() => fetchVideos(0, true)}
+          />
+        )}
       </dialog>
     </div>
   );

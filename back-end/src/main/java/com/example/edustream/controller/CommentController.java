@@ -61,4 +61,13 @@ public class CommentController {
 
         return ResponseEntity.ok(response);
     }
+    @GetMapping("/reply/{commentId}")
+    public ResponseEntity<PageResponse<CommentResponseDto>> getRepliesByCommentId(
+            @PathVariable Long commentId,
+            @RequestParam(defaultValue = "0") int page) {
+
+        PageResponse<CommentResponseDto> response = commentService.getRepliesByCommentId(commentId, page);
+
+        return ResponseEntity.ok(response);
+    }
 }

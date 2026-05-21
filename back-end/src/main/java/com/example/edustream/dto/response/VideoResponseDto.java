@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.Instant;
+import java.util.List;
 
 @Setter
 @Getter
@@ -23,6 +24,7 @@ public class VideoResponseDto {
     private String fullName;
     private String username;
     private String avatar;
+    private List<String> categories;
+    private List<String> hashtags;
     private Instant createdAt;
-
 }

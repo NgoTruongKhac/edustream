@@ -12,5 +12,6 @@ public interface CommentMapper {
     @Mapping(source = "user.fullName", target = "fullName")
     @Mapping(source = "user.username", target = "username")
     @Mapping(source = "user.avatar", target = "avatar")
+    @Mapping(source = "replyCount", target = "replyCount")
     CommentResponseDto toCommentResponseDto(Comment comment);
 }
