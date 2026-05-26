@@ -31,45 +31,68 @@ public class SubscriptionService {
         String targetUsername = subscribeRequestDto.getUsername();
 
         if (subscriber.getUsername().equals(targetUsername)) {
-            // Bạn có thể thay bằng Custom Exception của dự án (VD: BadRequestException)
             throw new IllegalArgumentException("Bạn không thể tự đăng ký kênh của chính mình.");
         }
 
-        // 3. Tìm kiếm kênh (User) muốn đăng ký trong DB
         User channel = userRepository.findByUsername(targetUsername)
-                .orElseThrow(() -> new UserNotFoundException("Không tìm thấy người dùng với username: " + targetUsername));
+                .orElseThrow(() -> new UserNotFoundException("Không tìm thấy người dùng: " + targetUsername));
 
         if (subscriptionRepository.existsBySubscriberAndChannel(subscriber, channel)) {
-             return;
-
+            return;
         }
 
+        // Lưu subscription
         Subscription subscription = new Subscription();
         subscription.setSubscriber(subscriber);
         subscription.setChannel(channel);
-
         subscriptionRepository.save(subscription);
+
+        // Cập nhật số lượng người đăng ký cho channel
+        channel.setSubscribersCount(channel.getSubscribersCount() + 1);
+        userRepository.save(channel);
     }
+
     @Transactional
     public void unsubscribe(UserPrincipal userPrincipal, SubscribeRequestDto dto) {
         User subscriber = userPrincipal.getUser();
         String targetUsername = dto.getUsername();
 
-        // 1. Không cho tự thao tác
-        if (subscriber.getUsername().equals(targetUsername)) {
-            throw new IllegalArgumentException("Không hợp lệ.");
-        }
-
-        // 2. Tìm channel
         User channel = userRepository.findByUsername(targetUsername)
-                .orElseThrow(() -> new UserNotFoundException(
-                        "Không tìm thấy người dùng với username: " + targetUsername));
+                .orElseThrow(() -> new UserNotFoundException("Không tìm thấy người dùng: " + targetUsername));
 
         if (!subscriptionRepository.existsBySubscriberAndChannel(subscriber, channel)) {
             return;
         }
 
         subscriptionRepository.deleteBySubscriberAndChannel(subscriber, channel);
+
+        // Giảm số lượng người đăng ký (đảm bảo không âm)
+        long currentCount = channel.getSubscribersCount();
+        channel.setSubscribersCount(Math.max(0, currentCount - 1));
+        userRepository.save(channel);
+    }
+
+    /**
+     * Lấy danh sách những người ĐÃ ĐĂNG KÝ kênh của mình (Followers)
+     */
+    @Transactional(readOnly = true)
+    public PageResponse<UserResponseDto> getMySubscribers(UserPrincipal userPrincipal, int page) {
+        User currentUser = userPrincipal.getUser();
+        Pageable pageable = PageRequest.of(page, 10);
+
+        Page<User> subscribersPage = subscriptionRepository.findSubscribersByChannel(currentUser, pageable);
+
+        return new PageResponse<>(subscribersPage.map(userMapper::toUserResponseDto));
+    }
+
+    @Transactional(readOnly = true)
+    public PageResponse<UserResponseDto> getSubscriptions(UserPrincipal userPrincipal, int page) {
+        User currentUser = userPrincipal.getUser();
+        Pageable pageable = PageRequest.of(page, 10);
+
+        Page<User> channelsPage = subscriptionRepository.findSubscribedChannels(currentUser, pageable);
+
+        return new PageResponse<>(channelsPage.map(userMapper::toUserResponseDto));
     }
 
     @Transactional(readOnly = true)
@@ -87,18 +110,5 @@ public class SubscriptionService {
         return subscriptionRepository.existsBySubscriberAndChannel(subscriber, channel);
     }
 
-    @Transactional(readOnly = true) // Đánh dấu readOnly để tối ưu hiệu suất đọc
-    public PageResponse<UserResponseDto> getSubscriptions(UserPrincipal userPrincipal, int page) {
-        User currentUser = userPrincipal.getUser();
-
-        int pageSize = 10;
-        Pageable pageable = PageRequest.of(page, pageSize);
-
-        Page<User> channelsPage = subscriptionRepository.findSubscribedChannels(currentUser, pageable);
-
-        Page<UserResponseDto> dtoPage = channelsPage.map(userMapper::toUserResponseDto);
-
-        return new PageResponse<>(dtoPage);
-    }
 
 }

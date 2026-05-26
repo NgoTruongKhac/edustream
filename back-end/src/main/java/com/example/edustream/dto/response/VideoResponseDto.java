@@ -24,6 +24,7 @@ public class VideoResponseDto {
     private String fullName;
     private String username;
     private String avatar;
+    private long subscribersCount;
     private List<String> categories;
     private List<String> hashtags;
     private Instant createdAt;

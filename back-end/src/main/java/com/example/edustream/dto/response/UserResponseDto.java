@@ -19,5 +19,6 @@ public class UserResponseDto {
 	private String coverImage;
 	private String authProvider;
 	private String providerId;
+	private long subscribersCount;
 
 }

@@ -36,15 +36,15 @@ public interface VideoMapper {
     Video toVideo(VideoUploadRequestDto request);
 
     // --- Chiều 2: Map từ Entity sang Response DTO (Đọc dữ liệu) ---
+    // Helper methods (giữ nguyên logic của bạn)
     @Mapping(target = "fullName", source = "user.fullName")
     @Mapping(target = "username", source = "user.username")
     @Mapping(target = "avatar", source = "user.avatar")
+    @Mapping(target = "subscribersCount", source = "user.subscribersCount")
     // Sử dụng parameter 'video' để khớp với tham số truyền vào
     @Mapping(target = "categories", expression = "java(mapCategories(video.getCategories()))")
     @Mapping(target = "hashtags", expression = "java(mapHashtags(video.getHashtags()))")
     VideoResponseDto toVideoResponseDto(Video video);
-
-    // Helper methods (giữ nguyên logic của bạn)
     default List<String> mapCategories(Set<Category> categories) {
         if (categories == null) return null;
         return categories.stream()

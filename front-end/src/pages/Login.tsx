@@ -8,6 +8,7 @@ import { loginWithGoogle } from "@/api/authApi";
 
 import z from "zod";
 import { Link } from "react-router-dom";
+import toast from "react-hot-toast";
 
 type LoginFormData = z.infer<typeof loginSchema>;
 export default function Login() {
@@ -30,10 +31,7 @@ export default function Login() {
       window.location.replace("/");
     } catch (error: any) {
       if (error.response?.data) {
-        setError("password", {
-          type: "manual",
-          message: error.response.data.message,
-        });
+        toast.error("Đăng nhập thất bại!");
       }
     }
   };

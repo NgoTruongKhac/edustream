@@ -144,7 +144,7 @@ export default function Register() {
             {/* Nút Đăng ký */}
             <button
               type="submit"
-              className="btn w-full bg-primary text-base-content border-none hover:bg-primary/90 rounded-xl mt-4 text-base font-medium"
+              className="btn w-full bg-primary text-primary-content border-none hover:bg-primary/90 rounded-xl mt-4 text-base font-medium"
             >
               {isLoading ? (
                 <span className="loading loading-spinner loading-sm"></span>

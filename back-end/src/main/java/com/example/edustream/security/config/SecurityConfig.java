@@ -34,7 +34,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final String[] PUBLIC_ENDPOINTS = {"/api/v1/auth/*", "/login", "/error", "/login-with-google"};
+    private final String[] PUBLIC_ENDPOINTS = {"/api/v1/auth/*", "/login", "/error", "/login-with-google", "/api/v1/videos/filter", "/api/v1/videos/watch/*"};
     private final UserDetailsService userDetailsService;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final CustomAuthenticationEntryPoint authenticationEntryPoint;

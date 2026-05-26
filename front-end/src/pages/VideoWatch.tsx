@@ -6,7 +6,7 @@ import { ThumbsUp, Share2, Bookmark, Eye } from "lucide-react";
 import SubscribeButton from "@/components/SubscribeButton";
 import { useAuthStore } from "@/stores/useAuthStore";
 import ModalPlaylist from "@/components/ModalPlaylist";
-import { number } from "zod";
+import toast from "react-hot-toast";
 
 // --- Types ---
 interface VideoResponseDto {
@@ -106,6 +106,7 @@ export default function VideoWatch() {
   const [error, setError] = useState(false);
   const [descExpanded, setDescExpanded] = useState(false);
 
+  const [selectedVideoId, setSelectedVideoId] = useState<number | null>(null);
   const currentUser = useAuthStore((state) => state.user);
 
   useEffect(() => {
@@ -152,6 +153,19 @@ export default function VideoWatch() {
       </div>
     );
   }
+
+  const handleOpenModalPlaylist = () => {
+    if (!currentUser) {
+      toast.error("Bạn cần đăng nhập!");
+      return;
+    }
+
+    setSelectedVideoId(Number(videoId));
+
+    (
+      document.getElementById("modal_playlist") as HTMLDialogElement
+    )?.showModal();
+  };
 
   return (
     <div className="flex-1 bg-base-100 min-h-screen">
@@ -239,13 +253,7 @@ export default function VideoWatch() {
                 </button>
 
                 <button
-                  onClick={() =>
-                    (
-                      document.getElementById(
-                        "modal_playlist",
-                      ) as HTMLDialogElement
-                    )?.showModal()
-                  }
+                  onClick={handleOpenModalPlaylist}
                   className="btn btn-sm btn-ghost border border-neutral-200 rounded-full gap-1.5 px-4 shrink-0"
                 >
                   <Bookmark size={16} />
@@ -336,7 +344,7 @@ export default function VideoWatch() {
       </div>
 
       <dialog id="modal_playlist" className="modal">
-        <ModalPlaylist videoId={Number(videoId)} />
+        {selectedVideoId && <ModalPlaylist videoId={selectedVideoId} />}
       </dialog>
     </div>
   );

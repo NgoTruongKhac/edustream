@@ -1,5 +1,7 @@
 import { Link } from "react-router-dom";
 import { EllipsisVertical, Flag, Bookmark } from "lucide-react";
+import { useAuthStore } from "@/stores/useAuthStore";
+import toast from "react-hot-toast";
 
 interface VideoCardProps {
   videoId: number;
@@ -8,7 +10,7 @@ interface VideoCardProps {
   avatar: string;
   title: string;
   channel: string;
-  views: string;
+  views: number;
   createdAt: string;
   onBookmarkClick?: (videoId: number) => void;
 }
@@ -38,6 +40,17 @@ export default function VideoCard({
   createdAt,
   onBookmarkClick,
 }: VideoCardProps) {
+  const currentUser = useAuthStore((state) => state.user);
+  const handleBookmarkClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+
+    if (!currentUser) {
+      toast.error("Bạn cần đăng nhập!");
+      return;
+    }
+
+    onBookmarkClick?.(videoId);
+  };
   return (
     <div className="flex flex-col gap-3 group">
       {/* Thumbnail & Duration */}
@@ -77,7 +90,7 @@ export default function VideoCard({
                 {channel}
               </p>
               <p className="text-sm text-base-content/60">
-                {views} • {formatDate(createdAt)}
+                {"100N lượt xem"} • {formatDate(createdAt)}
               </p>
             </div>
           </Link>
@@ -97,10 +110,7 @@ export default function VideoCard({
             >
               <li>
                 <button
-                  onClick={(e) => {
-                    e.preventDefault();
-                    onBookmarkClick?.(videoId);
-                  }}
+                  onClick={handleBookmarkClick}
                   className="flex items-center gap-2.5 text-sm text-base-content rounded-lg px-3 py-2 hover:bg-base-200"
                 >
                   <Bookmark size={15} className="text-base-content/70" />

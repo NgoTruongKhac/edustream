@@ -50,4 +50,7 @@ public class User extends AbstractEntity<User> {
     @Column(name = "username_last_updated_at")
     private LocalDateTime usernameLastUpdatedAt;
 
+    @Column(name = "subscribers_count")
+    private long subscribersCount = 0;
+
 }

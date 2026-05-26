@@ -21,6 +21,11 @@ public interface SubscriptionRepository extends JpaRepository<Subscription, Long
     // (Tùy chọn) Hàm dùng để hủy đăng ký nếu bạn muốn làm chức năng Toggle
     void deleteBySubscriberAndChannel(User subscriber, User channel);
 
+    // Lấy danh sách kênh mình ĐÃ đăng ký (Following)
     @Query("SELECT s.channel FROM Subscription s WHERE s.subscriber = :subscriber ORDER BY s.createdAt DESC")
     Page<User> findSubscribedChannels(@Param("subscriber") User subscriber, Pageable pageable);
+
+    // Lấy danh sách những người ĐÃ đăng ký mình (Followers) - MỚI
+    @Query("SELECT s.subscriber FROM Subscription s WHERE s.channel = :channel ORDER BY s.createdAt DESC")
+    Page<User> findSubscribersByChannel(@Param("channel") User channel, Pageable pageable);
 }

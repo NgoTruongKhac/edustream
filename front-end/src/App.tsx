@@ -20,6 +20,10 @@ import "./index.css";
 import { useThemeStore } from "./stores/useThemeStore";
 import { useSocketStore } from "./stores/useSocketStore";
 import { useUnreadNotificationStore } from "./stores/useUnReadNotificationStore";
+import MainLayoutAdmin from "./admin/layout/MainLayoutAdmin";
+import Danshboard from "./admin/pages/Danshboard";
+import ManageVideosAmin from "./admin/pages/ManageVideos";
+import ManageUsers from "./admin/pages/ManageUsers";
 
 function App() {
   const { checkAuthStatus, user, isAuthenticated } = useAuthStore();
@@ -33,17 +37,12 @@ function App() {
 
   useEffect(() => {
     if (isAuthenticated && user) {
-      // 1. Lấy số unread hiện tại từ API
       fetchCount();
 
-      // 2. Kết nối WebSocket và lắng nghe notification mới
       connect(user.id, (_payload) => {
-        // Mỗi khi nhận notification mới → tăng badge lên 1
         increment();
-        // Nếu muốn toast: toast.success("Bạn có thông báo mới!")
       });
     } else {
-      // Logout → ngắt kết nối
       disconnect();
     }
 
@@ -81,6 +80,11 @@ function App() {
             <Route path="/edit-profile" element={<EditProfile />} />
             <Route path="/manage-videos" element={<ManageVideos />} />
             <Route path="/watch/:videoId" element={<VideoWatch />} />
+          </Route>
+          <Route path="/admin" element={<MainLayoutAdmin />}>
+            <Route path="dashboard" element={<Danshboard />} />
+            <Route path="manage-users" element={<ManageUsers />} />
+            <Route path="manage-videos" element={<ManageVideosAmin />} />
           </Route>
           <Route path="/login" element={<Login />} />
 

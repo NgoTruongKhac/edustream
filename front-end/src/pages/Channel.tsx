@@ -37,6 +37,7 @@ interface UserProfile {
   coverImage: string;
   authProvider: string;
   providerId: string;
+  subscribersCount: number;
 }
 
 export default function Channel() {
@@ -160,7 +161,7 @@ export default function Channel() {
                 @{user.username}
               </span>
               <span>•</span>
-              <span>100 N người đăng ký</span>
+              <span>{`${user.subscribersCount} người đăng ký`}</span>
               <span>•</span>
               <span>{videos.length} video</span>
             </div>
@@ -227,7 +228,7 @@ export default function Channel() {
                     }
                     title={video.title}
                     channel={user.fullName}
-                    views=""
+                    views={10}
                     createdAt={video.createdAt}
                   />
                 ))}

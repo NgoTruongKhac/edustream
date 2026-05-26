@@ -5,6 +5,7 @@ import {
   checkSubscription,
 } from "@/api/subscriptionApi";
 import toast from "react-hot-toast";
+import { useAuthStore } from "@/stores/useAuthStore";
 
 type Props = {
   username: string;
@@ -12,6 +13,7 @@ type Props = {
 };
 
 const SubscribeButton = ({ username, size = "md" }: Props) => {
+  const currentUser = useAuthStore((state) => state.user);
   const [isSubscribed, setIsSubscribed] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true); // Khởi tạo là true để chờ check api xong
   const [isActionLoading, setIsActionLoading] = useState<boolean>(false); // Trạng thái khi đang bấm nút
@@ -34,6 +36,10 @@ const SubscribeButton = ({ username, size = "md" }: Props) => {
 
   // 2. Xử lý logic khi bấm nút
   const handleSubscribeClick = async () => {
+    if (!currentUser) {
+      toast.error("Bạn cần đăng nhập!");
+      return;
+    }
     setIsActionLoading(true);
     try {
       if (isSubscribed) {

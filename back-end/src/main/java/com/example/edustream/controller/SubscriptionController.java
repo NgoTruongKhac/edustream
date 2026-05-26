@@ -57,6 +57,16 @@ public class SubscriptionController {
 
         return ResponseEntity.ok(response);
     }
+    @GetMapping("/subscribers")
+    public ResponseEntity<PageResponse<UserResponseDto>> getMySubscribers(
+            @AuthenticationPrincipal UserPrincipal userPrincipal,
+            @RequestParam(defaultValue = "0") int page) {
+
+        PageResponse<UserResponseDto> response =
+                subscriptionService.getMySubscribers(userPrincipal, page);
+
+        return ResponseEntity.ok(response);
+    }
 
 
 }
