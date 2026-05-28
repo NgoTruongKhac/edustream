@@ -9,11 +9,15 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 
 @Repository
 public interface VideoRepository extends JpaRepository<Video, Long> {
 
+    long count();
+    List<Video> findAllByCreatedAtAfter(Instant after);
     // Fetch dữ liệu liên quan để tránh LazyInitializationException
     @Query("SELECT DISTINCT v FROM Video v " +
             "LEFT JOIN FETCH v.categories " +

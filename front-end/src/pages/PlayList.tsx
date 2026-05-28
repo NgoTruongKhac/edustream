@@ -59,9 +59,9 @@ export default function PlayList() {
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
             {Array.from({ length: 8 }).map((_, i) => (
               <div key={i} className="flex flex-col gap-2 animate-pulse">
-                <div className="w-full aspect-video rounded-xl bg-neutral-200" />
-                <div className="h-3.5 bg-neutral-200 rounded w-3/4" />
-                <div className="h-3 bg-neutral-100 rounded w-1/3" />
+                <div className="skeleton w-full aspect-video" />
+                <div className="skeleton h-3.5 w-3/4" />
+                <div className="skeleton h-3 w-1/3" />
               </div>
             ))}
           </div>

@@ -71,11 +71,11 @@ export default function Subscription() {
         <div className="space-y-4">
           {Array.from({ length: 5 }).map((_, i) => (
             <div key={i} className="flex items-center gap-4 py-5 px-4">
-              <div className="w-20 h-20 rounded-full bg-base-300 animate-pulse shrink-0" />
+              <div className="skeleton w-20 h-20 rounded-full shrink-0" />
               <div className="flex-1 space-y-2">
-                <div className="h-4 bg-base-300 rounded animate-pulse w-1/3" />
-                <div className="h-3 bg-base-300 rounded animate-pulse w-1/2" />
-                <div className="h-3 bg-base-300 rounded animate-pulse w-3/4" />
+                <div className="skeleton h-4 w-1/3" />
+                <div className="skeleton h-3 w-1/2" />
+                <div className="skeleton h-3 w-3/4" />
               </div>
               <div className="w-24 h-9 bg-base-300 rounded-xl animate-pulse" />
             </div>

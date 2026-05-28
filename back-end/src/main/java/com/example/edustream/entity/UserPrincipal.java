@@ -31,8 +31,8 @@ public class UserPrincipal implements UserDetails, OAuth2User {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        // TODO Auto-generated method stub
-        return List.of(new SimpleGrantedAuthority(user.getRole().name()));
+        // Thêm tiền tố ROLE_ vào trước tên của Role
+        return List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole().name()));
     }
 
     @Override

@@ -91,8 +91,39 @@ export default function Home() {
       </h2>
 
       {loading ? (
-        <div className="flex justify-center items-center py-20">
-          <span className="loading loading-spinner loading-lg text-primary" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-y-10 gap-x-6">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <div className="flex flex-col gap-3 animate-pulse">
+              {/* Thumbnail skeleton */}
+              <div className="relative w-full aspect-video rounded-xl overflow-hidden">
+                <div className="skeleton w-full h-full" />
+              </div>
+
+              {/* Info */}
+              <div className="flex gap-3 pr-2">
+                {/* Avatar */}
+                <div className="flex-shrink-0 mt-1">
+                  <div className="skeleton w-10 h-10 rounded-full" />
+                </div>
+
+                {/* Text */}
+                <div className="flex flex-1 flex-col gap-2 pt-1">
+                  <div className="skeleton h-4 w-full" />
+                  <div className="skeleton h-4 w-4/5" />
+
+                  <div className="mt-1 flex flex-col gap-2">
+                    <div className="skeleton h-3 w-1/2" />
+                    <div className="skeleton h-3 w-2/3" />
+                  </div>
+                </div>
+
+                {/* Menu button */}
+                <div className="flex-shrink-0 pt-1">
+                  <div className="skeleton w-7 h-7 rounded-full" />
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       ) : videos.length === 0 ? (
         <div className="text-center py-20 text-base-content/50">

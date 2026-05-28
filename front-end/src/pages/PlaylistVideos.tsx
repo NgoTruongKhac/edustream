@@ -72,15 +72,15 @@ export default function PlaylistVideos() {
     return (
       <div className="flex-1 bg-base-100 min-h-screen">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
-          <div className="h-6 bg-neutral-200 rounded w-48 mb-6 animate-pulse" />
+          <div className="skeleton h-6 rounded w-48 mb-6 animate-pulse" />
           <div className="flex flex-col gap-4">
             {Array.from({ length: 5 }).map((_, i) => (
               <div key={i} className="flex gap-4 animate-pulse">
-                <div className="w-40 sm:w-48 aspect-video rounded-xl bg-neutral-200 shrink-0" />
+                <div className="skeleton w-40 sm:w-48 aspect-video rounded-xl shrink-0" />
                 <div className="flex-1 flex flex-col gap-2 pt-1">
-                  <div className="h-4 bg-neutral-200 rounded w-3/4" />
-                  <div className="h-3 bg-neutral-100 rounded w-1/3" />
-                  <div className="h-3 bg-neutral-100 rounded w-1/4" />
+                  <div className="skeleton h-4 rounded w-3/4" />
+                  <div className="skeleton h-3 rounded w-1/3" />
+                  <div className="skeleton h-3 rounded w-1/4" />
                 </div>
               </div>
             ))}
