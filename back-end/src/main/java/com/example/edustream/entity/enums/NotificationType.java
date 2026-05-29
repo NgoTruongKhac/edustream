@@ -6,5 +6,5 @@ public enum NotificationType {
     LIKE,
     REPLY_COMMENT,
     FOLLOW,
-    SYSTEM_ANNOUNCEMENT
+    SYSTEM
 }

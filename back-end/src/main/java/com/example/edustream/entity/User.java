@@ -3,6 +3,7 @@ package com.example.edustream.entity;
 
 import com.example.edustream.entity.enums.AuthProvider;
 import com.example.edustream.entity.enums.Role;
+import com.example.edustream.entity.enums.UserStatus;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -52,5 +53,12 @@ public class User extends AbstractEntity<User> {
 
     @Column(name = "subscribers_count")
     private long subscribersCount = 0;
+
+    @Column(name = "strike_count")
+    private int strikeCount = 0;
+
+    @Column(name = "user_status")
+    @Enumerated(EnumType.STRING)
+    private UserStatus userStatus = UserStatus.ACTIVE;
 
 }
