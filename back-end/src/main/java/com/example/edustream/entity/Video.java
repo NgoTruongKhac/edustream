@@ -1,5 +1,6 @@
 package com.example.edustream.entity;
 
+import com.example.edustream.entity.enums.UploadStatus;
 import com.example.edustream.entity.enums.VideoStatus;
 import com.example.edustream.entity.enums.VideoType;
 import jakarta.persistence.*;
@@ -46,7 +47,11 @@ public class Video extends AbstractEntity<Video> {
 
     @Column(name = "video_status")
     @Enumerated(EnumType.STRING)
-    private VideoStatus videoStatus;
+    private VideoStatus videoStatus=VideoStatus.PENDING;
+
+    @Column(name = "upload_status")
+    @Enumerated(EnumType.STRING)
+    private UploadStatus uploadStatus;
 
     @ManyToMany(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinTable(

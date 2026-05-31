@@ -1,9 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
 import {
   Search,
-  Info,
-  CheckCircle,
-  Trash2,
+  Eye,
+  Settings2,
   ChevronLeft,
   ChevronRight,
   ArrowUpDown,
@@ -11,36 +10,15 @@ import {
   ArrowDown,
   AlertCircle,
   Play,
+  Flag,
 } from "lucide-react";
-import { getAllVideos } from "@/api/videoApi";
-import VideoDetailModal from "../components/VideoDetailModal";
-import ModalWatchVideo from "../components/ModalWatchVideo";
+import { getReports } from "@/api/reportApi";
+import ReportDetailModal, {
+  type ReportResponseDto,
+} from "../components/ReportDetailModal";
 import toast from "react-hot-toast";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
-
-type VideoType = "YOUTUBE" | "UPLOAD";
-type VideoStatus = "ACCEPTED" | "REJECTED" | "PENDING";
-
-export interface VideoResponseDto {
-  id: string;
-  title: string;
-  thumbnail?: string;
-  description?: string;
-  duration: number;
-  videoType: VideoType;
-  videoStatus: VideoStatus;
-  videoUrl?: string;
-  videoYoutubeUrl?: string;
-  videoYoutubeId?: string;
-  fullName: string;
-  username: string;
-  avatar?: string;
-  subscribersCount: number;
-  categories: string[];
-  hashtags: string[];
-  createdAt: string;
-}
 
 interface PageResponse<T> {
   content: T[];
@@ -55,22 +33,32 @@ type SortField =
   | "title"
   | "fullName"
   | "username"
-  | "createdAt"
-  | "videoType"
-  | "videoStatus";
+  | "violationType"
+  | "createdAt";
 type SortDir = "asc" | "desc" | null;
 
 // ─── Configs ─────────────────────────────────────────────────────────────────
 
-const statusConfig: Record<VideoStatus, { label: string; badge: string }> = {
-  ACCEPTED: { label: "Đã duyệt", badge: "badge-success" },
-  REJECTED: { label: "Từ chối", badge: "badge-error" },
-  PENDING: { label: "Chờ duyệt", badge: "badge-warning" },
-};
-
-const typeConfig: Record<VideoType, { label: string; badge: string }> = {
-  YOUTUBE: { label: "YouTube", badge: "badge-error" },
-  UPLOAD: { label: "Upload", badge: "badge-info" },
+const violationConfig: Record<string, { label: string; badge: string }> = {
+  ADULT_CONTENT: { label: "Khiêu dâm", badge: "badge-error" },
+  VIOLENT_OR_GRAPHIC_CONTENT: {
+    label: "Bạo lực / Phản cảm",
+    badge: "badge-error",
+  },
+  HATEFUL_OR_ABUSIVE_CONTENT: {
+    label: "Lăng mạ / Thù hận",
+    badge: "badge-warning",
+  },
+  HARMFUL_OR_DANGEROUS_ACTS: {
+    label: "Gây hại / Nguy hiểm",
+    badge: "badge-warning",
+  },
+  SELF_HARM_OR_SUICIDE: {
+    label: "Tự tử / Tự hủy hoại",
+    badge: "badge-warning",
+  },
+  MISINFORMATION: { label: "Thông tin sai lệch", badge: "badge-info" },
+  COPYRIGHT_INFRINGEMENT: { label: "Vi phạm bản quyền", badge: "badge-ghost" },
 };
 
 // ─── Sub-components ──────────────────────────────────────────────────────────
@@ -133,8 +121,10 @@ function SortHeader({
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
-export default function ManageVideosAdmin() {
-  const [data, setData] = useState<PageResponse<VideoResponseDto> | null>(null);
+export default function ManageReports() {
+  const [data, setData] = useState<PageResponse<ReportResponseDto> | null>(
+    null,
+  );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -143,25 +133,26 @@ export default function ManageVideosAdmin() {
   const [sortField, setSortField] = useState<SortField | null>(null);
   const [sortDir, setSortDir] = useState<SortDir>(null);
 
-  const [watchVideo, setWatchVideo] = useState<VideoResponseDto | null>(null);
-  const [detailVideo, setDetailVideo] = useState<VideoResponseDto | null>(null);
+  const [detailReport, setDetailReport] = useState<ReportResponseDto | null>(
+    null,
+  );
 
-  const fetchVideos = useCallback(async () => {
+  const fetchReports = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const res: PageResponse<VideoResponseDto> = await getAllVideos(page);
+      const res: PageResponse<ReportResponseDto> = await getReports(page);
       setData(res);
     } catch {
-      setError("Không thể tải danh sách video.");
+      setError("Không thể tải danh sách báo cáo.");
     } finally {
       setLoading(false);
     }
   }, [page]);
 
   useEffect(() => {
-    fetchVideos();
-  }, [fetchVideos]);
+    fetchReports();
+  }, [fetchReports]);
 
   const displayed = (() => {
     if (!data) return [];
@@ -170,17 +161,17 @@ export default function ManageVideosAdmin() {
     if (search.trim()) {
       const q = search.toLowerCase();
       list = list.filter(
-        (v) =>
-          v.title.toLowerCase().includes(q) ||
-          v.fullName.toLowerCase().includes(q) ||
-          v.username.toLowerCase().includes(q),
+        (r) =>
+          r.title.toLowerCase().includes(q) ||
+          r.fullName.toLowerCase().includes(q) ||
+          r.username.toLowerCase().includes(q),
       );
     }
 
     if (sortField && sortDir) {
       list.sort((a, b) => {
-        const va = a[sortField as keyof VideoResponseDto] ?? "";
-        const vb = b[sortField as keyof VideoResponseDto] ?? "";
+        const va = a[sortField as keyof ReportResponseDto] ?? "";
+        const vb = b[sortField as keyof ReportResponseDto] ?? "";
         const cmp = String(va).localeCompare(String(vb), "vi", {
           numeric: true,
         });
@@ -203,21 +194,20 @@ export default function ManageVideosAdmin() {
     }
   };
 
-  const handleApprove = async (video: VideoResponseDto) => {
-    // TODO: call approveVideo API
-    toast.success(`Đã phê duyệt: ${video.title}`);
-  };
-
-  const handleDelete = (video: VideoResponseDto) => {
-    // TODO: call deleteVideo API with confirm dialog
-    toast.error(`Xoá video: ${video.title} (chưa triển khai)`);
+  const handleProcess = (report: ReportResponseDto) => {
+    // TODO: implement process report API
+    toast.success(`Đang xử lý báo cáo #${report.id}`);
   };
 
   return (
     <div className="p-4 md:p-6 space-y-5">
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-3">
-        <h1 className="text-xl font-bold text-base-content">Quản lý video</h1>
+        <div className="flex items-center gap-2">
+          <h1 className="text-xl font-bold text-base-content">
+            Quản lý báo cáo
+          </h1>
+        </div>
 
         <label className="input input-bordered input-sm flex items-center gap-2 w-full max-w-xs">
           <Search className="w-4 h-4 text-base-content/40" />
@@ -237,7 +227,7 @@ export default function ManageVideosAdmin() {
           <div className="flex flex-col items-center justify-center h-64 gap-3 text-base-content/60">
             <AlertCircle className="w-10 h-10 text-error" />
             <p>{error}</p>
-            <button className="btn btn-sm btn-primary" onClick={fetchVideos}>
+            <button className="btn btn-sm btn-primary" onClick={fetchReports}>
               Thử lại
             </button>
           </div>
@@ -266,8 +256,17 @@ export default function ManageVideosAdmin() {
                   </th>
                   <th>
                     <SortHeader
-                      label="Kênh"
+                      label="Tài khoản"
                       field="fullName"
+                      current={sortField}
+                      dir={sortDir}
+                      onSort={handleSort}
+                    />
+                  </th>
+                  <th>
+                    <SortHeader
+                      label="Loại vi phạm"
+                      field="violationType"
                       current={sortField}
                       dir={sortDir}
                       onSort={handleSort}
@@ -275,26 +274,8 @@ export default function ManageVideosAdmin() {
                   </th>
                   <th className="hidden lg:table-cell">
                     <SortHeader
-                      label="Ngày đăng"
+                      label="Ngày gửi"
                       field="createdAt"
-                      current={sortField}
-                      dir={sortDir}
-                      onSort={handleSort}
-                    />
-                  </th>
-                  <th>
-                    <SortHeader
-                      label="Loại"
-                      field="videoType"
-                      current={sortField}
-                      dir={sortDir}
-                      onSort={handleSort}
-                    />
-                  </th>
-                  <th>
-                    <SortHeader
-                      label="Trạng thái"
-                      field="videoStatus"
                       current={sortField}
                       dir={sortDir}
                       onSort={handleSort}
@@ -319,29 +300,24 @@ export default function ManageVideosAdmin() {
                         </div>
                       </td>
                       <td>
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-2">
                           <div className="skeleton w-8 h-8 rounded-full shrink-0" />
-
                           <div className="space-y-1">
                             <div className="skeleton h-4 w-24" />
                             <div className="skeleton h-3 w-20" />
                           </div>
                         </div>
                       </td>
+                      <td>
+                        <div className="skeleton h-5 w-28 rounded-full" />
+                      </td>
                       <td className="hidden lg:table-cell">
                         <div className="skeleton h-4 w-24" />
                       </td>
                       <td>
-                        <div className="skeleton h-5 w-16 rounded-full" />
-                      </td>
-                      <td>
-                        <div className="skeleton h-5 w-16 rounded-full" />
-                      </td>
-                      <td>
                         <div className="flex items-center justify-end gap-1">
-                          {Array.from({ length: 4 }).map((_, j) => (
-                            <div key={j} className="skeleton w-6 h-6 rounded" />
-                          ))}
+                          <div className="skeleton w-6 h-6 rounded" />
+                          <div className="skeleton w-6 h-6 rounded" />
                         </div>
                       </td>
                     </tr>
@@ -349,40 +325,36 @@ export default function ManageVideosAdmin() {
                 ) : displayed.length === 0 ? (
                   <tr>
                     <td
-                      colSpan={8}
+                      colSpan={6}
                       className="text-center py-16 text-base-content/40"
                     >
-                      Không tìm thấy video nào
+                      Không tìm thấy báo cáo nào
                     </td>
                   </tr>
                 ) : (
-                  displayed.map((video) => {
-                    const status = statusConfig[video.videoStatus] ?? {
-                      label: video.videoStatus,
-                      badge: "badge-ghost",
-                    };
-                    const type = typeConfig[video.videoType] ?? {
-                      label: video.videoType,
+                  displayed.map((report) => {
+                    const violation = violationConfig[report.violationType] ?? {
+                      label: report.violationType,
                       badge: "badge-ghost",
                     };
                     return (
                       <tr
-                        key={video.id}
+                        key={report.id}
                         className="hover:bg-base-200/50 transition-colors"
                       >
                         {/* ID */}
                         <td className="text-base-content/50 text-xs font-mono">
-                          #{video.id.slice(0, 6)}
+                          #{report.id}
                         </td>
 
                         {/* Thumbnail + title */}
                         <td>
                           <div className="flex items-center gap-2.5">
-                            <div className="w-16 h-10 rounded overflow-hidden bg-base-300 shrink-0 relative">
-                              {video.thumbnail ? (
+                            <div className="w-16 h-10 rounded overflow-hidden bg-base-300 shrink-0">
+                              {report.thumbnail ? (
                                 <img
-                                  src={video.thumbnail}
-                                  alt={video.title}
+                                  src={report.thumbnail}
+                                  alt={report.title}
                                   className="w-full h-full object-cover"
                                 />
                               ) : (
@@ -392,87 +364,62 @@ export default function ManageVideosAdmin() {
                               )}
                             </div>
                             <span className="font-medium text-base-content text-sm line-clamp-2 max-w-[160px]">
-                              {video.title}
+                              {report.title}
                             </span>
                           </div>
                         </td>
 
-                        {/* Avatar + fullName */}
+                        {/* Avatar + fullName + username */}
                         <td>
-                          <div className="flex items-center gap-3 min-w-0">
-                            <Avatar src={video.avatar} name={video.fullName} />
-
+                          <div className="flex items-center gap-2 min-w-0">
+                            <Avatar
+                              src={report.avatar}
+                              name={report.fullName}
+                            />
                             <div className="min-w-0">
-                              <div className="font-medium text-sm text-base-content truncate max-w-[180px]">
-                                {video.fullName}
+                              <div className="font-medium text-sm text-base-content truncate max-w-[120px]">
+                                {report.fullName}
                               </div>
-
-                              <div className="text-xs text-base-content/60 truncate max-w-[180px]">
-                                @{video.username}
+                              <div className="text-xs text-base-content/60 truncate max-w-[120px]">
+                                @{report.username}
                               </div>
                             </div>
                           </div>
                         </td>
 
+                        {/* Violation type */}
+                        <td>
+                          <span className={`badge badge-sm ${violation.badge}`}>
+                            {violation.label}
+                          </span>
+                        </td>
+
                         {/* createdAt */}
                         <td className="hidden lg:table-cell text-base-content/60 text-sm">
-                          {new Date(video.createdAt).toLocaleDateString(
+                          {new Date(report.createdAt).toLocaleDateString(
                             "vi-VN",
                           )}
-                        </td>
-
-                        {/* Type */}
-                        <td>
-                          <span className={`badge badge-sm ${type.badge}`}>
-                            {type.label}
-                          </span>
-                        </td>
-
-                        {/* Status */}
-                        <td>
-                          <span className={`badge badge-sm ${status.badge}`}>
-                            {status.label}
-                          </span>
                         </td>
 
                         {/* Actions */}
                         <td>
                           <div className="flex items-center justify-end gap-1">
-                            {/* Xem video */}
-                            <button
-                              onClick={() => setWatchVideo(video)}
-                              className="btn btn-ghost btn-xs tooltip tooltip-left"
-                              data-tip="Xem video"
-                            >
-                              <Play className="w-4 h-4 text-primary" />
-                            </button>
-
                             {/* Xem chi tiết */}
                             <button
-                              onClick={() => setDetailVideo(video)}
+                              onClick={() => setDetailReport(report)}
                               className="btn btn-ghost btn-xs tooltip tooltip-left"
-                              data-tip="Chi tiết"
+                              data-tip="Xem chi tiết"
                             >
-                              <Info className="w-4 h-4 text-info" />
+                              <Eye className="w-4 h-4 text-info" />
                             </button>
 
-                            {/* Phê duyệt */}
+                            {/* Xử lý báo cáo */}
                             <button
-                              onClick={() => handleApprove(video)}
+                              onClick={() => handleProcess(report)}
                               className="btn btn-ghost btn-xs tooltip tooltip-left"
-                              data-tip="Phê duyệt"
-                              disabled={video.videoStatus === "ACCEPTED"}
+                              data-tip="Xử lý báo cáo"
                             >
-                              <CheckCircle className="w-4 h-4 text-success" />
-                            </button>
-
-                            {/* Xoá */}
-                            <button
-                              onClick={() => handleDelete(video)}
-                              className="btn btn-ghost btn-xs tooltip tooltip-left"
-                              data-tip="Xoá video"
-                            >
-                              <Trash2 className="w-4 h-4 text-error" />
+                              <Settings2 className="w-4 h-4 text-warning" />
                             </button>
                           </div>
                         </td>
@@ -490,7 +437,7 @@ export default function ManageVideosAdmin() {
           <div className="flex items-center justify-between px-4 py-3 border-t border-base-300 flex-wrap gap-2">
             <p className="text-xs text-base-content/50">
               Trang {data.page + 1} / {data.totalPages} &middot;{" "}
-              {data.totalElements.toLocaleString()} video
+              {data.totalElements.toLocaleString()} báo cáo
             </p>
 
             <div className="join">
@@ -526,17 +473,11 @@ export default function ManageVideosAdmin() {
         )}
       </div>
 
-      {/* Modals */}
-      {watchVideo && (
-        <ModalWatchVideo
-          video={watchVideo}
-          onClose={() => setWatchVideo(null)}
-        />
-      )}
-      {detailVideo && (
-        <VideoDetailModal
-          video={detailVideo}
-          onClose={() => setDetailVideo(null)}
+      {/* Modal */}
+      {detailReport && (
+        <ReportDetailModal
+          report={detailReport}
+          onClose={() => setDetailReport(null)}
         />
       )}
     </div>

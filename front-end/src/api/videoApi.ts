@@ -21,6 +21,11 @@ export const getVideosByCurrentUser = async (page: number = 0) => {
   return response.data;
 };
 
+export const getAllVideos = async (page: number = 0) => {
+  const response = await api.get("/videos/all", { params: { page } });
+  return response.data;
+};
+
 export const getVideosByUsername = async (
   username: string,
   page: number = 0,

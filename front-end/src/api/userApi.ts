@@ -10,6 +10,11 @@ export const getUserByUsername = async (username: string) => {
   return response.data;
 };
 
+export const getAllUsers = async (page: number = 0) => {
+  const response = await api.get("/users", { params: { page } });
+  return response.data;
+};
+
 export const updateUser = async (
   fullName: string,
   username: string,

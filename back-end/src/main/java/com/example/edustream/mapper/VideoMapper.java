@@ -24,7 +24,7 @@ public interface VideoMapper {
     @Mapping(target = "categories", ignore = true) // <--- QUAN TRỌNG
     @Mapping(target = "hashtags", ignore = true)   // <--- QUAN TRỌNG
     @Mapping(target = "videoType", constant = "YOUTUBE")
-    @Mapping(target = "videoStatus", constant = "PUBLISHED")
+    @Mapping(target = "uploadStatus", constant = "PUBLISHED")
     Video toVideo(VideoYoutubeRequestDto request);
 
     @Mapping(target = "id", ignore = true)
@@ -32,7 +32,7 @@ public interface VideoMapper {
     @Mapping(target = "categories", ignore = true) // <--- QUAN TRỌNG
     @Mapping(target = "hashtags", ignore = true)   // <--- QUAN TRỌNG
     @Mapping(target = "videoType", constant = "UPLOAD")
-    @Mapping(target = "videoStatus", constant = "PENDING")
+    @Mapping(target = "uploadStatus", constant = "PENDING")
     Video toVideo(VideoUploadRequestDto request);
 
     // --- Chiều 2: Map từ Entity sang Response DTO (Đọc dữ liệu) ---

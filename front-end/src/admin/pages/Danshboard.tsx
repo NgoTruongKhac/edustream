@@ -152,7 +152,7 @@ export default function Dashboard() {
     return (
       <div className="p-4 md:p-6 space-y-6">
         <div>
-          <h1 className="text-2xl font-bold text-base-content">
+          <h1 className="text-xl font-bold text-base-content">
             Thống kê tổng quan
           </h1>
         </div>

@@ -62,7 +62,7 @@ public class ViolationService {
         userRepository.save(user);
 
         // 4. Tạo Notification & Gửi Realtime
-        sendViolationNotification(user, dto.getViolationType());
+        sendViolationNotification(user, dto.getViolationType(), video);
 
         return violationMapper.toViolationResponseDto(violation);
     }
@@ -80,14 +80,14 @@ public class ViolationService {
         user.setUserStatus(UserStatus.BLOCKED);
     }
 
-    private void sendViolationNotification(User recipient, ViolationType type) {
+    private void sendViolationNotification(User recipient, ViolationType type, Video video) {
         String message = "Hệ thống cảnh báo: " + type.toString();
 
         // Tạo DTO gửi cho NotificationService
         NotificationRequestDto notifDto = new NotificationRequestDto();
         notifDto.setRecipientId(recipient.getId());
         notifDto.setSenderId(null); // Hệ thống gửi
-        notifDto.setReferenceId(null);
+        notifDto.setReferenceId(video.getId());
         notifDto.setNotificationType(NotificationType.SYSTEM);
         notifDto.setMessage(message);
 

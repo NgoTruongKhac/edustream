@@ -24,6 +24,7 @@ import MainLayoutAdmin from "./admin/layout/MainLayoutAdmin";
 import Danshboard from "./admin/pages/Danshboard";
 import ManageVideosAmin from "./admin/pages/ManageVideos";
 import ManageUsers from "./admin/pages/ManageUsers";
+import ManageReports from "./admin/pages/ManageReports";
 
 function App() {
   const { checkAuthStatus, user, isAuthenticated } = useAuthStore();
@@ -85,6 +86,7 @@ function App() {
             <Route path="dashboard" element={<Danshboard />} />
             <Route path="manage-users" element={<ManageUsers />} />
             <Route path="manage-videos" element={<ManageVideosAmin />} />
+            <Route path="manage-reports" element={<ManageReports />} />
           </Route>
           <Route path="/login" element={<Login />} />
 

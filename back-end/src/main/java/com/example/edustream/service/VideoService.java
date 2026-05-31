@@ -7,7 +7,7 @@ import com.example.edustream.dto.response.VideoResponseDto;
 import com.example.edustream.dto.response.VideoUploadResponseDto;
 import com.example.edustream.entity.*;
 import com.example.edustream.entity.enums.NotificationType;
-import com.example.edustream.entity.enums.VideoStatus;
+import com.example.edustream.entity.enums.UploadStatus;
 import com.example.edustream.entity.enums.VideoType;
 import com.example.edustream.exception.ResourceNotFoundException;
 import com.example.edustream.mapper.VideoMapper;
@@ -149,13 +149,13 @@ public class VideoService {
             throw new IllegalArgumentException("Tính năng này chỉ áp dụng cho video upload hệ thống!");
         }
 
-        if (video.getVideoStatus() == VideoStatus.PUBLISHED) {
+        if (video.getUploadStatus() == UploadStatus.PUBLISHED) {
             // Nếu đã PUBLISHED rồi thì không cần làm gì thêm, trả về luôn
             return videoMapper.toVideoResponseDto(video);
         }
 
         // 4. Cập nhật trạng thái
-        video.setVideoStatus(VideoStatus.PUBLISHED);
+        video.setUploadStatus(UploadStatus.PUBLISHED);
         Video updatedVideo = videoRepository.save(video);
         notifySubscribers(userPrincipal.getUser(), updatedVideo.getId(), updatedVideo.getTitle());
 

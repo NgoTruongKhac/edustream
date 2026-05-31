@@ -5,6 +5,7 @@ import {
   Settings,
   HelpCircle,
   AlignJustify,
+  Flag,
 } from "lucide-react";
 import { NavLink } from "react-router-dom";
 
@@ -24,6 +25,7 @@ const menus = [
   { to: "/admin/dashboard", label: "Thống kê", icon: LayoutGrid, end: true },
   { to: "/admin/manage-users", label: "Quản lý tài khoản", icon: Users },
   { to: "/admin/manage-videos", label: "Quản lý video", icon: Video },
+  { to: "/admin/manage-reports", label: "Báo cáo vi phạm", icon: Flag },
 ];
 
 export default function SidebarAdmin({ isOpen, onClose }: SidebarProps) {
