@@ -34,20 +34,28 @@ public class NotificationService {
     public NotificationResponseDto createNotification(NotificationRequestDto dto) {
         Notification notification = notificationMapper.toNotification(dto);
 
-        // Set sender và recipient từ ID
-        User sender = userRepository.getReferenceById(dto.getSenderId());
+        // 1. Kiểm tra và set Recipient (Luôn luôn phải có)
         User recipient = userRepository.getReferenceById(dto.getRecipientId());
-        notification.setSender(sender);
         notification.setRecipient(recipient);
+
+        // 2. REFACTOR: Kiểm tra senderId trước khi truy vấn proxy nhằm tránh lỗi Null
+        if (dto.getSenderId() != null) {
+            User sender = userRepository.getReferenceById(dto.getSenderId());
+            notification.setSender(sender);
+        } else {
+            notification.setSender(null); // Hệ thống gửi thì không có người dùng cụ thể
+        }
 
         Notification saved = notificationRepository.save(notification);
 
-        // Load lại sender đầy đủ để map response
-        saved.setSender(userRepository.findById(dto.getSenderId()).orElseThrow());
+        // 3. REFACTOR: Chỉ load lại chi tiết sender khi senderId tồn tại
+        if (dto.getSenderId() != null) {
+            saved.setSender(userRepository.findById(dto.getSenderId()).orElseThrow());
+        }
 
         NotificationResponseDto response = notificationMapper.toNotificationResponseDto(saved);
 
-        // Set thumbnail nếu có referenceId
+        // 4. Set thumbnail nếu có referenceId
         if (dto.getReferenceId() != null) {
             videoRepository.findById(dto.getReferenceId())
                     .ifPresent(video -> response.setThumbnail(video.getThumbnail()));

@@ -2,11 +2,14 @@ import { Link } from "react-router-dom";
 import { EllipsisVertical, Flag, Bookmark } from "lucide-react";
 import { useAuthStore } from "@/stores/useAuthStore";
 import toast from "react-hot-toast";
+import { useState } from "react";
+import ReportModal from "./ReportModal";
 
 interface VideoCardProps {
   videoId: number;
   thumbnail: string;
   duration: number;
+  userId: number;
   avatar: string;
   title: string;
   channel: string;
@@ -33,6 +36,7 @@ export default function VideoCard({
   videoId,
   thumbnail,
   duration,
+  userId,
   avatar,
   title,
   channel,
@@ -41,6 +45,8 @@ export default function VideoCard({
   onBookmarkClick,
 }: VideoCardProps) {
   const currentUser = useAuthStore((state) => state.user);
+
+  const [isReportOpen, setIsReportOpen] = useState<boolean>(false);
   const handleBookmarkClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
 
@@ -50,6 +56,17 @@ export default function VideoCard({
     }
 
     onBookmarkClick?.(videoId);
+  };
+
+  const handleFlagClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+
+    // Đóng dropdown menu chủ động
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
+
+    setIsReportOpen(true);
   };
   return (
     <div className="flex flex-col gap-3 group">
@@ -118,7 +135,10 @@ export default function VideoCard({
                 </button>
               </li>
               <li>
-                <button className="flex items-center gap-2.5 text-sm text-error rounded-lg px-3 py-2 hover:bg-error/10">
+                <button
+                  onClick={handleFlagClick}
+                  className="flex items-center gap-2.5 text-sm text-error rounded-lg px-3 py-2 hover:bg-error/10"
+                >
                   <Flag size={15} />
                   Báo cáo vi phạm
                 </button>
@@ -127,6 +147,12 @@ export default function VideoCard({
           </div>
         </div>
       </div>
+      <ReportModal
+        isOpen={isReportOpen}
+        onClose={() => setIsReportOpen(false)}
+        videoId={videoId}
+        videoOwnerId={userId}
+      />
     </div>
   );
 }

@@ -1,9 +1,6 @@
 package com.example.edustream.controller;
 
-import com.example.edustream.dto.request.VideoFilterRequestDto;
-import com.example.edustream.dto.request.VideoUpdateRequestDto;
-import com.example.edustream.dto.request.VideoUploadRequestDto;
-import com.example.edustream.dto.request.VideoYoutubeRequestDto;
+import com.example.edustream.dto.request.*;
 import com.example.edustream.dto.response.PageResponse;
 import com.example.edustream.dto.response.VideoResponseDto;
 import com.example.edustream.dto.response.VideoUploadResponseDto;
@@ -13,6 +10,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -129,5 +127,24 @@ public class VideoController {
         VideoUploadResponseDto response = videoService.updateVideo(videoId, requestDto, userPrincipal);
 
         return ResponseEntity.ok(response);
+    }
+    @PreAuthorize("hasRole('ADMIN')")
+    @PatchMapping("/{videoId}/accept")
+    public ResponseEntity<Void> acceptVideo(@PathVariable Long videoId) {
+        videoService.acceptVideo(videoId);
+        return ResponseEntity.ok().build();
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @PatchMapping("/{videoId}/reject")
+    public ResponseEntity<Void> rejectVideo(
+            @PathVariable Long videoId,
+            @Valid @RequestBody ViolationRequestDto violationRequestDto) {
+
+        // Đảm bảo videoId lấy từ URL đồng bộ với dữ liệu trong DTO gửi sang service
+        violationRequestDto.setVideoId(videoId);
+
+        videoService.rejectVideo(violationRequestDto);
+        return ResponseEntity.ok().build();
     }
 }

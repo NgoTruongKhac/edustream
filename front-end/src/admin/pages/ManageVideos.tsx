@@ -115,7 +115,7 @@ function SortHeader({
   return (
     <button
       onClick={() => onSort(field)}
-      className="flex items-center gap-1 font-semibold text-xs uppercase tracking-wide hover:text-primary transition-colors"
+      className="flex items-center gap-1 font-semibold text-xs tracking-wide hover:text-primary transition-colors"
     >
       {label}
       {isActive ? (
@@ -300,7 +300,7 @@ export default function ManageVideosAdmin() {
                       onSort={handleSort}
                     />
                   </th>
-                  <th className="text-right text-xs uppercase tracking-wide font-semibold">
+                  <th className="text-right text-xs tracking-wide font-semibold">
                     Hành động
                   </th>
                 </tr>

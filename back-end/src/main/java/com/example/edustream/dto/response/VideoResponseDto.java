@@ -23,6 +23,7 @@ public class VideoResponseDto {
     private String videoUrl;
     private String videoYoutubeUrl;
     private String videoYoutubeId;
+    private Long userId;
     private String fullName;
     private String username;
     private String avatar;

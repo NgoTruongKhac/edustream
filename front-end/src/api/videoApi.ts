@@ -1,4 +1,5 @@
 import api from "./apiClient";
+import type { ViolationRequestDto } from "./violationApi";
 
 export interface VideoYoutubeRequestDto {
   title: string;
@@ -110,5 +111,18 @@ export const updateVideo = async (
   data: VideoUpdateRequestDto,
 ): Promise<VideoUpdateResponseDto> => {
   const response = await api.put(`/videos/${videoId}`, data);
+  return response.data;
+};
+
+export const acceptVideo = async (videoId: number) => {
+  const response = await api.patch(`/videos/${videoId}/accept`);
+  return response.data;
+};
+
+export const rejectVideo = async (
+  videoId: number,
+  data: ViolationRequestDto,
+) => {
+  const response = await api.patch(`/videos/${videoId}/reject`, data);
   return response.data;
 };

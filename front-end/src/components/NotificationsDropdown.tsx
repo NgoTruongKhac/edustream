@@ -4,12 +4,12 @@ import { Link } from "react-router-dom";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 interface NotificationResponseDto {
-  fullName: string;
-  avatar: string;
-  thumbnail: string;
-  message: string; // "title" in the UI
+  fullName: string | null; // Cho phép nhận giá trị null từ hệ thống
+  avatar: string | null; // Cho phép nhận giá trị null từ hệ thống
+  thumbnail: string | null;
+  message: string;
   referenceId: number;
-  createdAt: string; // ISO-8601 / Instant as string
+  createdAt: string;
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -49,21 +49,26 @@ function NotificationItem({
   notification: NotificationResponseDto;
 }) {
   const { fullName, avatar, thumbnail, message, referenceId } = notification;
+
+  // Xác định tên hiển thị: Nếu null thì là thông báo từ Hệ thống
+  const displayName = fullName || "Hệ thống kiểm duyệt";
+
+  // Ảnh đại diện thay thế (Fallback avatar)
   const fallback = `https://ui-avatars.com/api/?name=${encodeURIComponent(
-    fullName,
+    displayName,
   )}&background=random`;
 
   return (
     <Link
-      to={`/watch/${referenceId}`}
+      to={referenceId ? `/watch/${referenceId}` : "#"} // Đề phòng thông báo hệ thống không kèm video
       className="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-base-200 cursor-pointer transition-colors"
     >
-      {/* Sender avatar */}
+      {/* Người gửi avatar */}
       <div className="avatar flex-shrink-0">
-        <div className="w-10 h-10 rounded-full border border-base-300">
+        <div className="w-10 h-10 rounded-full border border-base-300 overflow-hidden">
           <img
             src={avatar || fallback}
-            alt={fullName}
+            alt={displayName}
             onError={(e) => {
               (e.currentTarget as HTMLImageElement).src = fallback;
             }}
@@ -71,15 +76,15 @@ function NotificationItem({
         </div>
       </div>
 
-      {/* Text */}
+      {/* Nội dung chữ */}
       <div className="flex-1 min-w-0">
         <p className="text-sm font-semibold text-base-content truncate">
-          {fullName}
+          {displayName}
         </p>
         <p className="text-xs text-base-content/60 truncate">{message}</p>
       </div>
 
-      {/* Video thumbnail */}
+      {/* Ảnh thu nhỏ Video (nếu có) */}
       {thumbnail && (
         <div className="flex-shrink-0">
           <img
@@ -108,17 +113,20 @@ export default function NotificationsDropdown({ open, onClose }: Props) {
   const [loading, setLoading] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
 
-  // Fetch when opened
+  // Khởi chạy lấy dữ liệu khi bật dropdown
   useEffect(() => {
     if (!open) return;
     setLoading(true);
     getNotificationsByUser()
-      .then((data) => setNotifications(data?.content ?? []))
+      .then((data) => {
+        // Hãy chắc chắn data?.content là một mảng
+        setNotifications(data?.content ?? []);
+      })
       .catch(console.error)
       .finally(() => setLoading(false));
   }, [open]);
 
-  // Close on outside click
+  // Đóng khi click ra ngoài vùng panel
   useEffect(() => {
     function handleClick(e: MouseEvent) {
       if (panelRef.current && !panelRef.current.contains(e.target as Node)) {
@@ -131,10 +139,11 @@ export default function NotificationsDropdown({ open, onClose }: Props) {
 
   if (!open) return null;
 
-  // Group by date label
+  // Nhóm các thông báo theo nhãn ngày tháng
   const grouped: Record<string, NotificationResponseDto[]> = {};
   for (const n of notifications) {
-    const label = getDateLabel(n.createdAt);
+    // Đề phòng trường hợp trường createdAt bị trống
+    const label = n.createdAt ? getDateLabel(n.createdAt) : "Khác";
     if (!grouped[label]) grouped[label] = [];
     grouped[label].push(n);
   }
@@ -160,12 +169,12 @@ export default function NotificationsDropdown({ open, onClose }: Props) {
         rounded-2xl shadow-xl z-[200]
       "
     >
-      {/* Header */}
+      {/* Tiêu đề Dropdown */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-base-300 sticky top-0 bg-base-100 z-10">
         <span className="font-bold text-base-content text-base">Thông báo</span>
       </div>
 
-      {/* Body */}
+      {/* Hiển thị danh sách */}
       {loading ? (
         <div className="flex items-center justify-center py-10">
           <span className="loading loading-spinner loading-md text-primary" />

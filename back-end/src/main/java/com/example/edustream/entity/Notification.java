@@ -16,7 +16,7 @@ public class Notification extends AbstractEntity<Notification> {
     private User recipient;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "sender_id", nullable = false)
+    @JoinColumn(name = "sender_id")
     private User sender;
 
     @Column(name = "notification_type")

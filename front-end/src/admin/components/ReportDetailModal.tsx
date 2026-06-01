@@ -10,6 +10,7 @@ export interface ReportResponseDto {
   title: string;
   thumbnail?: string;
   violationType: string;
+  reportStatus: string;
   description?: string;
   createdAt: string;
 }

@@ -37,6 +37,7 @@ public interface VideoMapper {
 
     // --- Chiều 2: Map từ Entity sang Response DTO (Đọc dữ liệu) ---
     // Helper methods (giữ nguyên logic của bạn)
+    @Mapping(target = "userId", source = "user.id")
     @Mapping(target = "fullName", source = "user.fullName")
     @Mapping(target = "username", source = "user.username")
     @Mapping(target = "avatar", source = "user.avatar")

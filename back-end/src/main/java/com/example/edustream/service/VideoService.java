@@ -8,6 +8,7 @@ import com.example.edustream.dto.response.VideoUploadResponseDto;
 import com.example.edustream.entity.*;
 import com.example.edustream.entity.enums.NotificationType;
 import com.example.edustream.entity.enums.UploadStatus;
+import com.example.edustream.entity.enums.VideoStatus;
 import com.example.edustream.entity.enums.VideoType;
 import com.example.edustream.exception.ResourceNotFoundException;
 import com.example.edustream.mapper.VideoMapper;
@@ -44,6 +45,7 @@ public class VideoService {
     private final OnlineUserService onlineUserService;
     private final SimpMessagingTemplate messagingTemplate;
     private final S3Service s3Service;
+    private final ViolationService  violationService;
 
     @Value("${aws.s3.bucket}")
     private String bucketName;
@@ -355,5 +357,48 @@ public class VideoService {
                 );
             }
         }
+    }
+// Thêm dependency này vào phía trên cùng của VideoService cùng các thuộc tính khác:
+// private final ViolationService violationService;
+
+    @Transactional
+    public void acceptVideo(Long videoId) {
+        // 1. Tìm video theo ID
+        Video video = videoRepository.findById(videoId)
+                .orElseThrow(() -> new ResourceNotFoundException("Video không tồn tại với ID: " + videoId));
+
+        // 2. Kiểm tra nếu trạng thái hiện tại không phải PENDING (Tùy chọn - giúp dữ liệu chặt chẽ hơn)
+        if (video.getVideoStatus() != VideoStatus.PENDING) {
+            throw new IllegalStateException("Video này đã được xử lý trước đó!");
+        }
+
+        // 3. Cập nhật trạng thái thành ACCEPTED
+        video.setVideoStatus(VideoStatus.ACCEPTED);
+
+        // 4. Lưu lại vào Database
+        videoRepository.save(video);
+    }
+
+    @Transactional
+    public void rejectVideo(ViolationRequestDto violationRequestDto) {
+        // 1. Tìm video dựa trên videoId từ DTO
+        Long videoId = violationRequestDto.getVideoId();
+        Video video = videoRepository.findById(videoId)
+                .orElseThrow(() -> new ResourceNotFoundException("Video không tồn tại với ID: " + videoId));
+
+        // 2. Kiểm tra trạng thái hiện tại phải là PENDING
+        if (video.getVideoStatus() != VideoStatus.PENDING) {
+            throw new IllegalStateException("Video này đã được xử lý trước đó!");
+        }
+
+        // 3. Cập nhật trạng thái thành REJECTED và lưu video
+        video.setVideoStatus(VideoStatus.REJECTED);
+        videoRepository.save(video);
+
+        // 4. Điền bổ sung userId (chủ sở hữu video) vào DTO để ViolationService xử lý phạt gậy chính xác
+        violationRequestDto.setUserId(video.getUser().getId());
+
+        // 5. Gọi ViolationService để tạo vi phạm, cộng gậy và gửi thông báo hệ thống
+        violationService.createViolation(violationRequestDto);
     }
 }

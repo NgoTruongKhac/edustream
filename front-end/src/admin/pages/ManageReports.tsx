@@ -34,6 +34,7 @@ type SortField =
   | "fullName"
   | "username"
   | "violationType"
+  | "reportStatus"
   | "createdAt";
 type SortDir = "asc" | "desc" | null;
 
@@ -59,6 +60,20 @@ const violationConfig: Record<string, { label: string; badge: string }> = {
   },
   MISINFORMATION: { label: "Thông tin sai lệch", badge: "badge-info" },
   COPYRIGHT_INFRINGEMENT: { label: "Vi phạm bản quyền", badge: "badge-ghost" },
+};
+const reportStatusConfig: Record<string, { label: string; badge: string }> = {
+  PENDING: {
+    label: "Chờ xử lý",
+    badge: "badge-warning",
+  },
+  RESOLVED: {
+    label: "Đã xử lý",
+    badge: "badge-success",
+  },
+  REJECTED: {
+    label: "Từ chối",
+    badge: "badge-error",
+  },
 };
 
 // ─── Sub-components ──────────────────────────────────────────────────────────
@@ -103,7 +118,7 @@ function SortHeader({
   return (
     <button
       onClick={() => onSort(field)}
-      className="flex items-center gap-1 font-semibold text-xs uppercase tracking-wide hover:text-primary transition-colors"
+      className="flex items-center gap-1 font-semibold text-xs tracking-wide hover:text-primary transition-colors"
     >
       {label}
       {isActive ? (
@@ -272,6 +287,15 @@ export default function ManageReports() {
                       onSort={handleSort}
                     />
                   </th>
+                  <th>
+                    <SortHeader
+                      label="Trạng thái"
+                      field="reportStatus"
+                      current={sortField}
+                      dir={sortDir}
+                      onSort={handleSort}
+                    />
+                  </th>
                   <th className="hidden lg:table-cell">
                     <SortHeader
                       label="Ngày gửi"
@@ -281,7 +305,7 @@ export default function ManageReports() {
                       onSort={handleSort}
                     />
                   </th>
-                  <th className="text-right text-xs uppercase tracking-wide font-semibold">
+                  <th className="text-right text-xs tracking-wide font-semibold">
                     Hành động
                   </th>
                 </tr>
@@ -310,6 +334,9 @@ export default function ManageReports() {
                       </td>
                       <td>
                         <div className="skeleton h-5 w-28 rounded-full" />
+                      </td>
+                      <td>
+                        <div className="skeleton h-5 w-24 rounded-full" />
                       </td>
                       <td className="hidden lg:table-cell">
                         <div className="skeleton h-4 w-24" />
@@ -392,6 +419,24 @@ export default function ManageReports() {
                           <span className={`badge badge-sm ${violation.badge}`}>
                             {violation.label}
                           </span>
+                        </td>
+                        <td>
+                          {(() => {
+                            const status = reportStatusConfig[
+                              report.reportStatus
+                            ] ?? {
+                              label: report.reportStatus,
+                              badge: "badge-ghost",
+                            };
+
+                            return (
+                              <span
+                                className={`badge badge-sm ${status.badge}`}
+                              >
+                                {status.label}
+                              </span>
+                            );
+                          })()}
                         </td>
 
                         {/* createdAt */}

@@ -137,10 +137,11 @@ export default function Home() {
               videoId={video.id}
               thumbnail={video.thumbnail}
               duration={video.duration}
+              userId={video.userId}
               avatar={video.avatar}
               title={video.title}
               channel={video.fullName || video.username}
-              views=""
+              views={0}
               createdAt={video.createdAt}
               onBookmarkClick={openPlaylistModal}
             />

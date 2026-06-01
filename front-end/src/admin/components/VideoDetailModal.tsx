@@ -1,4 +1,4 @@
-import { X, Tag, Hash, Users, Clock, Link2 } from "lucide-react";
+import { X, Tag, Users, Clock, Link2 } from "lucide-react";
 
 interface VideoResponseDto {
   id: string;
@@ -11,6 +11,7 @@ interface VideoResponseDto {
   videoUrl?: string;
   videoYoutubeUrl?: string;
   videoYoutubeId?: string;
+  userId: number;
   fullName: string;
   username: string;
   avatar?: string;
