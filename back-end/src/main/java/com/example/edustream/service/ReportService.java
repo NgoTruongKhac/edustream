@@ -6,6 +6,7 @@ import com.example.edustream.dto.response.ReportResponseDto;
 import com.example.edustream.entity.Report;
 import com.example.edustream.entity.User;
 import com.example.edustream.entity.Video;
+import com.example.edustream.entity.enums.ReportStatus;
 import com.example.edustream.exception.ResourceNotFoundException;
 import com.example.edustream.mapper.ReportMapper;
 import com.example.edustream.repository.ReportRepository;
@@ -66,5 +67,44 @@ public class ReportService {
 
         // Trả về theo định dạng PageResponse tùy chỉnh của bạn
         return new PageResponse<>(dtoPage);
+    }
+// ... Các hàm cũ giữ nguyên ...
+
+    @Transactional
+    public ReportResponseDto acceptReport(Long reportId) {
+        // 1. Tìm Report theo ID
+        Report report = reportRepository.findById(reportId)
+                .orElseThrow(() -> new ResourceNotFoundException("Report not found with id: " + reportId));
+
+        // 2. Kiểm tra điều kiện: Chỉ xử lý nếu report đang ở trạng thái PENDING
+        if (report.getReportStatus() != ReportStatus.PENDING) {
+            throw new IllegalStateException("Report has already been processed. Current status: " + report.getReportStatus());
+        }
+
+        // 3. Cập nhật trạng thái sang RESOLVED
+        report.setReportStatus(ReportStatus.RESOLVED);
+
+        // 4. Lưu và trả về DTO
+        Report updatedReport = reportRepository.save(report);
+        return reportMapper.toReportResponseDto(updatedReport);
+    }
+
+    @Transactional
+    public ReportResponseDto rejectReport(Long reportId) {
+        // 1. Tìm Report theo ID
+        Report report = reportRepository.findById(reportId)
+                .orElseThrow(() -> new ResourceNotFoundException("Report not found with id: " + reportId));
+
+        // 2. Kiểm tra điều kiện: Chỉ xử lý nếu report đang ở trạng thái PENDING
+        if (report.getReportStatus() != ReportStatus.PENDING) {
+            throw new IllegalStateException("Report has already been processed. Current status: " + report.getReportStatus());
+        }
+
+        // 3. Cập nhật trạng thái sang REJECTED
+        report.setReportStatus(ReportStatus.REJECTED);
+
+        // 4. Lưu và trả về DTO
+        Report updatedReport = reportRepository.save(report);
+        return reportMapper.toReportResponseDto(updatedReport);
     }
 }

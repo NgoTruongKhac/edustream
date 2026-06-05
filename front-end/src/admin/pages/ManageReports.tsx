@@ -2,7 +2,8 @@ import { useState, useEffect, useCallback } from "react";
 import {
   Search,
   Eye,
-  Settings2,
+  CheckCircle2,
+  XCircle,
   ChevronLeft,
   ChevronRight,
   ArrowUpDown,
@@ -10,13 +11,13 @@ import {
   ArrowDown,
   AlertCircle,
   Play,
-  Flag,
 } from "lucide-react";
-import { getReports } from "@/api/reportApi";
 import ReportDetailModal, {
   type ReportResponseDto,
 } from "../components/ReportDetailModal";
 import toast from "react-hot-toast";
+import { getReports, acceptReport, rejectReport } from "@/api/reportApi";
+import ConfirmActionModal from "../components/ConfirmActionModal";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -151,6 +152,11 @@ export default function ManageReports() {
   const [detailReport, setDetailReport] = useState<ReportResponseDto | null>(
     null,
   );
+  const [confirmModal, setConfirmModal] = useState<{
+    report: ReportResponseDto;
+    type: "accept" | "reject";
+  } | null>(null);
+  const [actionLoading, setActionLoading] = useState(false);
 
   const fetchReports = useCallback(async () => {
     setLoading(true);
@@ -209,9 +215,42 @@ export default function ManageReports() {
     }
   };
 
-  const handleProcess = (report: ReportResponseDto) => {
-    // TODO: implement process report API
-    toast.success(`Đang xử lý báo cáo #${report.id}`);
+  const handleResolve = (report: ReportResponseDto) => {
+    if (report.reportStatus !== "PENDING") {
+      toast.error("Báo cáo này đã được xử lý từ trước.");
+      return;
+    }
+    setConfirmModal({ report, type: "accept" });
+  };
+
+  const handleReject = (report: ReportResponseDto) => {
+    if (report.reportStatus !== "PENDING") {
+      toast.error("Báo cáo này đã được xử lý từ trước.");
+      return;
+    }
+    setConfirmModal({ report, type: "reject" });
+  };
+  const handleConfirmAction = async () => {
+    if (!confirmModal) return;
+    const { report, type } = confirmModal;
+
+    setActionLoading(true);
+    try {
+      if (type === "accept") {
+        await acceptReport(report.id);
+        toast.success(`Đã giải quyết báo cáo #${report.id}`);
+      } else {
+        await rejectReport(report.id);
+        toast.success(`Đã bác bỏ báo cáo #${report.id}`);
+      }
+
+      setConfirmModal(null); // Đóng modal sau khi thành công
+      fetchReports(); // Reload lại danh sách dữ liệu mới nhất
+    } catch (error) {
+      toast.error("Thao tác thất bại. Vui lòng thử lại.");
+    } finally {
+      setActionLoading(false);
+    }
   };
 
   return (
@@ -458,13 +497,22 @@ export default function ManageReports() {
                               <Eye className="w-4 h-4 text-info" />
                             </button>
 
-                            {/* Xử lý báo cáo */}
+                            {/* Đã giải quyết */}
                             <button
-                              onClick={() => handleProcess(report)}
+                              onClick={() => handleResolve(report)}
                               className="btn btn-ghost btn-xs tooltip tooltip-left"
-                              data-tip="Xử lý báo cáo"
+                              data-tip="Đánh dấu đã giải quyết"
                             >
-                              <Settings2 className="w-4 h-4 text-warning" />
+                              <CheckCircle2 className="w-4 h-4 text-success" />
+                            </button>
+
+                            {/* Bác bỏ báo cáo */}
+                            <button
+                              onClick={() => handleReject(report)}
+                              className="btn btn-ghost btn-xs tooltip tooltip-left"
+                              data-tip="Bác bỏ báo cáo"
+                            >
+                              <XCircle className="w-4 h-4 text-error" />
                             </button>
                           </div>
                         </td>
@@ -523,6 +571,15 @@ export default function ManageReports() {
         <ReportDetailModal
           report={detailReport}
           onClose={() => setDetailReport(null)}
+        />
+      )}
+      {confirmModal && (
+        <ConfirmActionModal
+          report={confirmModal.report}
+          actionType={confirmModal.type}
+          isLoading={actionLoading}
+          onClose={() => setConfirmModal(null)}
+          onConfirm={handleConfirmAction}
         />
       )}
     </div>

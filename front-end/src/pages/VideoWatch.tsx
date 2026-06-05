@@ -1,6 +1,11 @@
-import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
-import { getVideoById } from "@/api/videoApi";
+import { useEffect, useState, useRef, useCallback } from "react";
+import { Link, useParams, useNavigate } from "react-router-dom";
+import {
+  getVideoById,
+  getRelatedVideos,
+  trackVideoView,
+  likeVideo,
+} from "@/api/videoApi";
 import Comment from "@/components/Comment";
 import { ThumbsUp, Share2, Bookmark, Eye } from "lucide-react";
 import SubscribeButton from "@/components/SubscribeButton";
@@ -15,6 +20,9 @@ interface VideoResponseDto {
   thumbnail: string;
   description: string;
   duration: number;
+  view: number;
+  likeCount: number;
+  liked: boolean;
   videoType: "YOUTUBE" | "UPLOAD";
   videoUrl: string;
   videoYoutubeUrl: string;
@@ -24,70 +32,6 @@ interface VideoResponseDto {
   avatar: string;
   createdAt: string;
 }
-
-// --- Mock data cho video liên quan ---
-const RELATED_VIDEOS = [
-  {
-    id: "r1",
-    thumbnail:
-      "https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=400&q=80",
-    duration: 765,
-    avatar:
-      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=40&q=80",
-    title: "Giải Tích 1: Giới Hạn Hàm Số - Lý Thuyết Đầy Đủ",
-    channel: "Toán Học Online",
-    views: "124N",
-    createdAt: "2024-03-10T00:00:00Z",
-  },
-  {
-    id: "r2",
-    thumbnail:
-      "https://images.unsplash.com/photo-1532094349884-543bc11b234d?w=400&q=80",
-    duration: 2720,
-    avatar:
-      "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=40&q=80",
-    title: "Khám Phá Cấu Trúc Nguyên Tử: Từ Cơ Bản Đến Nâng Cao",
-    channel: "Khoa Học Vui",
-    views: "89N",
-    createdAt: "2024-02-20T00:00:00Z",
-  },
-  {
-    id: "r3",
-    thumbnail:
-      "https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=400&q=80",
-    duration: 4500,
-    avatar:
-      "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=40&q=80",
-    title: "Khóa Học Python Cơ Bản Dành Cho Người Mới Bắt Đầu",
-    channel: "Code Việt",
-    views: "250N",
-    createdAt: "2024-01-15T00:00:00Z",
-  },
-  {
-    id: "r4",
-    thumbnail:
-      "https://images.unsplash.com/photo-1546410531-bea5aad14e00?w=400&q=80",
-    duration: 1110,
-    avatar:
-      "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=40&q=80",
-    title: "5 Phương Pháp Luyện Nghe Tiếng Anh Hiệu Quả Nhất",
-    channel: "English Hub",
-    views: "500N",
-    createdAt: "2023-12-01T00:00:00Z",
-  },
-  {
-    id: "r5",
-    thumbnail:
-      "https://images.unsplash.com/photo-1509228627152-72ae9ae6848d?w=400&q=80",
-    duration: 930,
-    avatar:
-      "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=40&q=80",
-    title: "Lịch Sử Việt Nam: Thời Kỳ Dựng Nước Và Giữ Nước",
-    channel: "Sử Việt",
-    views: "320N",
-    createdAt: "2024-04-01T00:00:00Z",
-  },
-];
 
 // --- Helpers ---
 const formatDate = (isoString: string): string => {
@@ -100,14 +44,30 @@ const formatDate = (isoString: string): string => {
 
 export default function VideoWatch() {
   const { videoId } = useParams();
+  const navigate = useNavigate();
 
   const [video, setVideo] = useState<VideoResponseDto | null>(null);
+  const [relatedVideos, setRelatedVideos] = useState<VideoResponseDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [descExpanded, setDescExpanded] = useState(false);
 
   const [selectedVideoId, setSelectedVideoId] = useState<number | null>(null);
   const currentUser = useAuthStore((state) => state.user);
+  const viewTimerRef = useRef<number>(0);
+  const viewTrackedRef = useRef<boolean>(false);
+  const intervalIdRef = useRef<NodeJS.Timeout | null>(null);
+
+  const getDeviceIdentifier = useCallback((): string => {
+    if (currentUser?.id) return String(currentUser.id);
+    let anonymousId = localStorage.getItem("anonymous_device_id");
+    if (!anonymousId) {
+      anonymousId =
+        "anon_" + Math.random().toString(36).substring(2, 15) + Date.now();
+      localStorage.setItem("anonymous_device_id", anonymousId);
+    }
+    return anonymousId;
+  }, [currentUser]);
 
   useEffect(() => {
     if (!videoId) {
@@ -116,24 +76,178 @@ export default function VideoWatch() {
       return;
     }
 
-    const fetchVideo = async () => {
+    const fetchVideoData = async () => {
       setLoading(true);
       setError(false);
       try {
-        const data = await getVideoById(Number(videoId));
-        setVideo(data);
+        const numId = Number(videoId);
+
+        // Gọi đồng thời cả 2 API để tối ưu hóa thời gian load trang
+        const [videoData, relatedData] = await Promise.all([
+          getVideoById(numId),
+          getRelatedVideos(numId, 0),
+        ]);
+
+        setVideo(videoData);
+        // Do cấu trúc trả về là PageResponse nên danh sách video nằm trong thuộc tính content
+        setRelatedVideos(relatedData.content || []);
       } catch (err) {
-        console.error("Lỗi khi tải video:", err);
+        console.error("Lỗi khi tải dữ liệu video:", err);
         setError(true);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchVideo();
+    fetchVideoData();
+    // Cuộn lên đầu trang khi người dùng chuyển sang xem video mới
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }, [videoId]);
 
-  const embedUrl = `https://www.youtube.com/embed/${video?.videoYoutubeId}?autoplay=1&rel=0`;
+  const stopTracking = useCallback(() => {
+    if (intervalIdRef.current) {
+      clearInterval(intervalIdRef.current);
+      intervalIdRef.current = null; // FIX 2: luôn reset về null
+    }
+  }, []);
+
+  const startTracking = useCallback(() => {
+    if (viewTrackedRef.current) return;
+    if (intervalIdRef.current) return; // đang đếm rồi, không tạo thêm
+
+    intervalIdRef.current = setInterval(() => {
+      viewTimerRef.current += 1;
+      console.log("[ViewTrack] seconds watched:", viewTimerRef.current); // debug
+
+      if (viewTimerRef.current >= 5) {
+        viewTrackedRef.current = true;
+        stopTracking();
+
+        const identifier = getDeviceIdentifier();
+        console.log("[ViewTrack] Firing view event, identifier:", identifier);
+
+        trackVideoView(Number(videoId), identifier)
+          .then(() => console.log("[ViewTrack] Success"))
+          .catch((err) => console.error("[ViewTrack] Error:", err));
+      }
+    }, 1000);
+  }, [videoId, getDeviceIdentifier, stopTracking]);
+
+  // Reset khi đổi video
+  useEffect(() => {
+    viewTimerRef.current = 0;
+    viewTrackedRef.current = false;
+    stopTracking(); // FIX 2: hàm này đã reset intervalIdRef về null
+  }, [videoId, stopTracking]);
+
+  // Cleanup khi unmount
+  useEffect(() => {
+    return () => stopTracking();
+  }, [stopTracking]);
+
+  // FIX 3: YouTube tracking — parse playerState đúng cách
+  useEffect(() => {
+    if (video?.videoType !== "YOUTUBE") return;
+
+    const handleYoutubeMessage = (event: MessageEvent) => {
+      try {
+        // Bỏ qua message không phải string hoặc không parse được JSON
+        if (typeof event.data !== "string") return;
+        if (event.data.includes("initialDelivery")) return;
+
+        const data = JSON.parse(event.data);
+        let playerState: number | undefined;
+
+        if (
+          data.event === "infoDelivery" &&
+          typeof data.info?.playerState === "number"
+        ) {
+          playerState = data.info.playerState;
+        } else if (
+          data.event === "onStateChange" &&
+          typeof data.info === "number"
+        ) {
+          playerState = data.info;
+        }
+
+        if (playerState === undefined) return;
+
+        console.log("[ViewTrack] YouTube playerState:", playerState);
+
+        if (playerState === 1) {
+          // PLAYING
+          startTracking();
+        } else if (playerState === 2 || playerState === 0) {
+          // PAUSED | ENDED
+          stopTracking();
+        }
+      } catch {
+        // Bỏ qua message không phải JSON của YouTube
+      }
+    };
+
+    window.addEventListener("message", handleYoutubeMessage);
+    return () => window.removeEventListener("message", handleYoutubeMessage);
+
+    // FIX 1: thêm startTracking và stopTracking vào deps
+  }, [video, videoId, startTracking, stopTracking]);
+
+  const handleLike = async () => {
+    if (!currentUser) {
+      toast.error("Bạn cần đăng nhập để thực hiện tính năng này!");
+      return;
+    }
+
+    if (!video || !videoId) return;
+
+    // 1. Lưu lại trạng thái cũ đề phòng API lỗi thì Rollback
+    const previousIsLiked = video.liked;
+    const previousLikeCount = video.likeCount;
+
+    // 2. Cập nhật UI ngay lập tức (Optimistic Update)
+    setVideo((prev) => {
+      if (!prev) return null;
+      return {
+        ...prev,
+        isLiked: !prev.liked, // Đảo trạng thái true <-> false
+        likeCount: prev.liked ? prev.likeCount - 1 : prev.likeCount + 1, // Tăng hoặc Giảm số lượng
+      };
+    });
+
+    try {
+      // 3. Gọi API gửi lên server
+      const updatedVideo = await likeVideo(Number(videoId));
+
+      // Đồng bộ lại dữ liệu chuẩn từ server trả về
+      if (updatedVideo) {
+        setVideo((prev) =>
+          prev
+            ? {
+                ...prev,
+                likeCount: updatedVideo.likeCount,
+                isLiked: updatedVideo.isLiked,
+              }
+            : null,
+        );
+      }
+    } catch (err) {
+      console.error("Lỗi khi toggle like video:", err);
+      toast.error("Thao tác thất bại. Vui lòng thử lại!");
+
+      // 4. Nếu lỗi, hoàn tác (Rollback) UI về trạng thái cũ trước khi bấm
+      setVideo((prev) =>
+        prev
+          ? {
+              ...prev,
+              isLiked: previousIsLiked,
+              likeCount: previousLikeCount,
+            }
+          : null,
+      );
+    }
+  };
+
+  const embedUrl = `https://www.youtube.com/embed/${video?.videoYoutubeId}?autoplay=1&rel=0&enablejsapi=1`;
 
   // --- Loading state ---
   if (loading) {
@@ -190,6 +304,9 @@ export default function VideoWatch() {
                   autoPlay
                   className="w-full h-full"
                   poster={video.thumbnail || undefined}
+                  onPlay={startTracking}
+                  onPause={stopTracking}
+                  onEnded={stopTracking}
                 >
                   Trình duyệt của bạn không hỗ trợ phát video.
                 </video>
@@ -241,9 +358,18 @@ export default function VideoWatch() {
               {/* RIGHT: Actions */}
               <div className="flex items-center gap-2 overflow-x-auto no-scrollbar sm:overflow-visible">
                 <div className="join rounded-full border border-neutral-200 shrink-0">
-                  <button className="btn btn-sm btn-ghost join-item gap-1.5 px-4 rounded-l-full">
-                    <ThumbsUp size={16} />
-                    <span className="text-sm font-medium">64 N</span>
+                  <button
+                    onClick={handleLike}
+                    className={`btn btn-sm btn-ghost join-item gap-1.5 px-4 rounded-l-full hover:bg-base-200 active:scale-95 transition-all
+      ${video.liked ? "text-primary " : ""}`} // Thay đổi màu nút khi đã like
+                  >
+                    <ThumbsUp
+                      size={16}
+                      className={video.liked ? "fill-primary text-primary" : ""}
+                    />
+                    <span className="text-sm font-medium">
+                      {video.likeCount}
+                    </span>
                   </button>
                 </div>
 
@@ -261,6 +387,7 @@ export default function VideoWatch() {
                 </button>
               </div>
             </div>
+
             {/* --- Description Box --- */}
             <div
               className="mt-4 bg-base-200 hover:bg-base-300 transition-colors rounded-xl p-4 cursor-pointer"
@@ -280,6 +407,8 @@ export default function VideoWatch() {
                 <span className="font-semibold text-base-content">
                   {formatDate(video.createdAt)}
                 </span>
+                {"\n\n"}
+                {video.description}
               </div>
 
               <p className="text-xs font-bold text-primary mt-2 uppercase tracking-wide">
@@ -295,49 +424,56 @@ export default function VideoWatch() {
               Video liên quan
             </h2>
             <div className="flex flex-col gap-3">
-              {RELATED_VIDEOS.map((v) => (
-                <div
-                  key={v.id}
-                  className="flex gap-3 cursor-pointer group"
-                  onClick={() =>
-                    (window.location.href = `/watch?videoId=${v.id}`)
-                  }
-                >
-                  {/* Thumbnail */}
-                  <div className="relative w-40 aspect-video rounded-lg overflow-hidden bg-base-300 shrink-0">
-                    <img
-                      src={v.thumbnail}
-                      alt={v.title}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-                    {/* Badge thời lượng - Dùng neutral để luôn tương phản tốt trên ảnh */}
-                    <span className="absolute bottom-1 right-1 bg-neutral/90 text-neutral-content text-[10px] font-bold px-1.5 py-0.5 rounded shadow-sm">
-                      {Math.floor(v.duration / 60)}:
-                      {String(v.duration % 60).padStart(2, "0")}
-                    </span>
+              {relatedVideos.length === 0 ? (
+                <p className="text-xs text-neutral-400 italic">
+                  Không có video liên quan nào.
+                </p>
+              ) : (
+                relatedVideos.map((v) => (
+                  <div
+                    key={v.id}
+                    className="flex gap-3 cursor-pointer group"
+                    onClick={() => navigate(`/watch/${v.id}`)} // Chuyển trang mượt mà bằng React Router
+                  >
+                    {/* Thumbnail */}
+                    <div className="relative w-40 aspect-video rounded-lg overflow-hidden bg-base-300 shrink-0">
+                      <img
+                        src={
+                          v.thumbnail ||
+                          "https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=400&q=80"
+                        }
+                        alt={v.title}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
+                      {/* Badge thời lượng */}
+                      <span className="absolute bottom-1 right-1 bg-neutral/90 text-neutral-content text-[10px] font-bold px-1.5 py-0.5 rounded shadow-sm">
+                        {Math.floor(v.duration / 60)}:
+                        {String(v.duration % 60).padStart(2, "0")}
+                      </span>
+                    </div>
+
+                    {/* Info */}
+                    <div className="flex flex-col justify-start flex-1 min-w-0 pt-0.5">
+                      <h3 className="text-sm font-semibold text-base-content line-clamp-2 leading-snug group-hover:text-primary transition-colors">
+                        {v.title}
+                      </h3>
+
+                      {/* Channel Name */}
+                      <p className="text-xs text-base-content/60 mt-1 hover:text-base-content transition-colors">
+                        {v.fullName}
+                      </p>
+
+                      {/* Meta info: Date */}
+                      <p className="text-xs text-base-content/50">
+                        {new Date(v.createdAt).toLocaleDateString("vi-VN", {
+                          month: "short",
+                          year: "numeric",
+                        })}
+                      </p>
+                    </div>
                   </div>
-
-                  {/* Info */}
-                  <div className="flex flex-col justify-start flex-1 min-w-0 pt-0.5">
-                    <h3 className="text-sm font-semibold text-base-content line-clamp-2 leading-snug group-hover:text-primary transition-colors">
-                      {v.title}
-                    </h3>
-
-                    {/* Channel Name */}
-                    <p className="text-xs text-base-content/60 mt-1 hover:text-base-content transition-colors">
-                      {v.channel}
-                    </p>
-
-                    {/* Meta info: Views & Date */}
-                    <p className="text-xs text-base-content/50">
-                      {new Date(v.createdAt).toLocaleDateString("vi-VN", {
-                        month: "short",
-                        year: "numeric",
-                      })}
-                    </p>
-                  </div>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </div>
         </div>

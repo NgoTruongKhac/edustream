@@ -7,13 +7,13 @@ import {
   Palette,
 } from "lucide-react";
 import logo_full from "@/assets/logo/logo_full.png";
-import { Link } from "react-router-dom";
 import { useAuthStore } from "@/stores/useAuthStore";
 import { useThemeStore } from "@/stores/useThemeStore";
 import { themes } from "@/utils/themes";
 import { useUnreadNotificationStore } from "@/stores/useUnReadNotificationStore";
 import NotificationsDropdown from "./NotificationsDropdown";
 import { useState, useRef } from "react";
+import { Link, useNavigate } from "react-router-dom";
 
 interface NavbarProps {
   onOpenSidebar: () => void;
@@ -27,6 +27,25 @@ export default function Navbar({ onOpenSidebar }: NavbarProps) {
   const { count, reset } = useUnreadNotificationStore();
   const [notifOpen, setNotifOpen] = useState(false);
   const bellRef = useRef<HTMLButtonElement>(null);
+
+  const [searchKeyword, setSearchKeyword] = useState("");
+  const navigate = useNavigate();
+
+  // 3. Hàm xử lý chuyển trang khi nhấn Enter hoặc submit tìm kiếm
+  const handleSearchSubmit = () => {
+    if (searchKeyword.trim()) {
+      // Đưa query parameters lên URL: keyword và mặc định page = 0
+      navigate(
+        `/search?keyword=${encodeURIComponent(searchKeyword.trim())}&page=0`,
+      );
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      handleSearchSubmit();
+    }
+  };
 
   const handleLogout = () => {
     logout();
@@ -69,6 +88,9 @@ export default function Navbar({ onOpenSidebar }: NavbarProps) {
           <input
             type="text"
             placeholder="Tìm kiếm nội dung..."
+            value={searchKeyword}
+            onChange={(e) => setSearchKeyword(e.target.value)}
+            onKeyDown={handleKeyDown}
             className="input w-full pl-11 
             bg-base-200 border-base-400 border 
             text-base-content placeholder:text-base-content/50
@@ -81,7 +103,10 @@ export default function Navbar({ onOpenSidebar }: NavbarProps) {
       {/* RIGHT */}
       <div className="navbar-end flex items-center gap-1 sm:gap-2">
         {/* Mobile search */}
-        <button className="btn btn-ghost btn-circle lg:hidden text-neutral-600 hover:text-primary hover:bg-primary/10">
+        <button
+          onClick={handleSearchSubmit}
+          className="btn btn-ghost btn-circle lg:hidden text-neutral-600 hover:text-primary hover:bg-primary/10"
+        >
           <Search className="w-5 h-5" />
         </button>
 

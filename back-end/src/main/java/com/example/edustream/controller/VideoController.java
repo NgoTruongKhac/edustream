@@ -6,6 +6,7 @@ import com.example.edustream.dto.response.VideoResponseDto;
 import com.example.edustream.dto.response.VideoUploadResponseDto;
 import com.example.edustream.entity.UserPrincipal;
 import com.example.edustream.service.VideoService;
+import com.example.edustream.service.VideoViewService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -21,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
 public class VideoController {
 
     private final VideoService videoService;
+    private final VideoViewService videoViewService;
 
     @PostMapping("/youtube")
     public ResponseEntity<VideoResponseDto> createVideoYoutube(
@@ -52,12 +54,11 @@ public class VideoController {
         return ResponseEntity.ok(response);
     }
     @GetMapping("/watch/{videoId}")
-    public ResponseEntity<VideoResponseDto> getVideoById(@PathVariable Long videoId) {
+    public ResponseEntity<VideoResponseDto> getVideoById(
+            @PathVariable Long videoId,
+            @AuthenticationPrincipal UserPrincipal userPrincipal) { // Thêm dòng này
 
-        // Gọi service để lấy dữ liệu
-        VideoResponseDto response = videoService.getVideoById(videoId);
-
-        // Trả về dữ liệu kèm theo status 200 OK
+        VideoResponseDto response = videoService.getVideoById(videoId, userPrincipal);
         return ResponseEntity.ok(response);
     }
     @GetMapping("/all")
@@ -146,5 +147,42 @@ public class VideoController {
 
         videoService.rejectVideo(violationRequestDto);
         return ResponseEntity.ok().build();
+    }
+    @GetMapping("/{id}/related")
+    public ResponseEntity<PageResponse<VideoResponseDto>> getRelatedVideos(
+            @PathVariable("id") Long videoId,
+            @RequestParam(defaultValue = "0") int page) {
+
+        PageResponse<VideoResponseDto> response = videoService.getRelatedVideos(videoId, page);
+        return ResponseEntity.ok(response);
+    }
+
+
+    @PostMapping("/view-event")
+    public ResponseEntity<String> recordVideoView(@RequestBody VideoViewRequestDto requestDto) {
+        System.out.println("call");
+        boolean isNewView = videoViewService.processViewEvent(requestDto);
+        System.out.println(isNewView);
+        if (isNewView) {
+            return ResponseEntity.ok("View event accepted");
+        }
+        return ResponseEntity.ok("Spam detected or view already counted within 24h");
+    }
+    @PatchMapping("/{videoId}/like")
+    public ResponseEntity<VideoResponseDto> likeVideo(
+            @PathVariable Long videoId,
+            @AuthenticationPrincipal UserPrincipal userPrincipal) { // Thêm dòng này
+
+        VideoResponseDto responseDto = videoService.toggleLikeVideo(videoId, userPrincipal);
+        return ResponseEntity.ok(responseDto);
+    }
+    @GetMapping("/search")
+    public ResponseEntity<PageResponse<VideoResponseDto>> searchVideos(
+            @RequestParam(value = "keyword", required = false, defaultValue = "") String keyword,
+            @RequestParam(value = "page", required = false, defaultValue = "0") int page) {
+
+        PageResponse<VideoResponseDto> response = videoService.searchVideos(keyword, page);
+
+        return ResponseEntity.ok(response);
     }
 }

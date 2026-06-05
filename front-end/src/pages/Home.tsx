@@ -141,7 +141,7 @@ export default function Home() {
               avatar={video.avatar}
               title={video.title}
               channel={video.fullName || video.username}
-              views={0}
+              view={video.view}
               createdAt={video.createdAt}
               onBookmarkClick={openPlaylistModal}
             />

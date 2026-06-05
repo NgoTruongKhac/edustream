@@ -17,8 +17,6 @@ import java.util.stream.Collectors;
 @Mapper(componentModel = "spring", nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
 public interface VideoMapper {
 
-    // --- Chiều 1: Map từ Request DTO sang Entity (Ghi dữ liệu) ---
-    // Cần ignore categories và hashtags vì chúng ta xử lý logic này tại Service
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "user", ignore = true)
     @Mapping(target = "categories", ignore = true) // <--- QUAN TRỌNG

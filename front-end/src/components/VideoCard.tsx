@@ -13,7 +13,7 @@ interface VideoCardProps {
   avatar: string;
   title: string;
   channel: string;
-  views: number;
+  view: number;
   createdAt: string;
   onBookmarkClick?: (videoId: number) => void;
 }
@@ -40,7 +40,7 @@ export default function VideoCard({
   avatar,
   title,
   channel,
-  views,
+  view,
   createdAt,
   onBookmarkClick,
 }: VideoCardProps) {
@@ -107,7 +107,7 @@ export default function VideoCard({
                 {channel}
               </p>
               <p className="text-sm text-base-content/60">
-                {"100N lượt xem"} • {formatDate(createdAt)}
+                {view} lượt xem • {formatDate(createdAt)}
               </p>
             </div>
           </Link>

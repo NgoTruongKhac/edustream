@@ -15,6 +15,7 @@ import {
   type CommentResponseDto,
 } from "@/api/commentApi";
 import { useAuthStore } from "@/stores/useAuthStore";
+import { Link } from "react-router-dom";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface Props {
@@ -371,39 +372,52 @@ export default function Comment({ videoId }: Props) {
           <div className="w-10 h-10 rounded-full bg-neutral-200 shrink-0" />
         )}
 
-        <div className="flex-1 flex flex-col gap-2">
-          <div
-            className={`flex items-end gap-2 border rounded-2xl px-4 py-2.5 bg-base-100 transition-colors ${
-              focused ? "border-primary" : "border-base"
-            }`}
-          >
-            <textarea
-              value={newComment}
-              onChange={(e) => setNewComment(e.target.value)}
-              onFocus={() => setFocused(true)}
-              onBlur={() => !newComment && setFocused(false)}
-              onKeyDown={handleKeyDown}
-              placeholder="Viết bình luận..."
-              rows={focused ? 3 : 1}
-              className="flex-1 text-sm text-base-content bg-transparent outline-none resize-none transition-all"
-            />
-            {(focused || newComment) && (
-              <button
-                onClick={handleCreateComment}
-                disabled={!newComment.trim() || submitting}
-                className="btn btn-sm btn-primary rounded-xl shrink-0 gap-1.5"
-              >
-                {submitting ? (
-                  <span className="loading loading-spinner loading-xs" />
-                ) : (
-                  <>
-                    <Send size={14} />
-                    <span className="hidden sm:inline">Đăng</span>
-                  </>
-                )}
-              </button>
-            )}
-          </div>
+        <div className="flex-1">
+          {currentUser ? (
+            <div
+              className={`flex items-end gap-2 border rounded-2xl px-4 py-2.5 bg-base-100 transition-colors ${
+                focused ? "border-primary" : "border-base"
+              }`}
+            >
+              <textarea
+                value={newComment}
+                onChange={(e) => setNewComment(e.target.value)}
+                onFocus={() => setFocused(true)}
+                onBlur={() => !newComment && setFocused(false)}
+                onKeyDown={handleKeyDown}
+                placeholder="Viết bình luận..."
+                rows={focused ? 3 : 1}
+                className="flex-1 text-sm text-base-content bg-transparent outline-none resize-none transition-all"
+              />
+
+              {(focused || newComment) && (
+                <button
+                  onClick={handleCreateComment}
+                  disabled={!newComment.trim() || submitting}
+                  className="btn btn-sm btn-primary rounded-xl shrink-0 gap-1.5"
+                >
+                  {submitting ? (
+                    <span className="loading loading-spinner loading-xs" />
+                  ) : (
+                    <>
+                      <Send size={14} />
+                      <span className="hidden sm:inline">Đăng</span>
+                    </>
+                  )}
+                </button>
+              )}
+            </div>
+          ) : (
+            <div className="flex items-center justify-between border border-base rounded-2xl px-4 py-3 bg-base-100">
+              <p className="text-sm text-base-content/70">
+                Vui lòng đăng nhập để đăng bình luận.
+              </p>
+
+              <Link to="/login" className="btn btn-primary btn-sm rounded-lg">
+                Đăng nhập
+              </Link>
+            </div>
+          )}
         </div>
       </div>
 

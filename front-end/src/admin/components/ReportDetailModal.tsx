@@ -24,6 +24,17 @@ const violationLabels: Record<string, string> = {
   MISINFORMATION: "Thông tin sai lệch",
   COPYRIGHT_INFRINGEMENT: "Vi phạm bản quyền",
 };
+const reportStatusLabels: Record<string, string> = {
+  PENDING: "Chờ xử lý",
+  RESOLVED: "Đã xử lý",
+  REJECTED: "Từ chối",
+};
+
+const reportStatusClasses: Record<string, string> = {
+  PENDING: "badge-warning",
+  RESOLVED: "badge-success",
+  REJECTED: "badge-error",
+};
 
 function Row({
   label,
@@ -94,13 +105,15 @@ export default function ReportDetailModal({ report, onClose }: Props) {
           <Row label="Video bị báo cáo">
             <div>
               <p className="font-medium">{report.title}</p>
-              <p className="text-xs text-base-content/50 font-mono mt-0.5">
-                Video ID: {report.videoId}
-              </p>
             </div>
           </Row>
+          <Row label="Video ID">
+            <span className="font-mono text-base-content/60">
+              {report.videoId}
+            </span>
+          </Row>
 
-          <Row label="Tài khoản báo cáo">
+          <Row label="Tài khoản bị báo cáo">
             <div className="flex items-center gap-2">
               {report.avatar ? (
                 <img
@@ -129,8 +142,17 @@ export default function ReportDetailModal({ report, onClose }: Props) {
           </Row>
 
           <Row label="Loại vi phạm">
-            <span className="badge badge-sm badge-warning">
+            <span className="badge badge-sm badge-error">
               {violationLabels[report.violationType] ?? report.violationType}
+            </span>
+          </Row>
+          <Row label="Trạng thái">
+            <span
+              className={`badge badge-sm ${
+                reportStatusClasses[report.reportStatus] ?? "badge-neutral"
+              }`}
+            >
+              {reportStatusLabels[report.reportStatus] ?? report.reportStatus}
             </span>
           </Row>
 

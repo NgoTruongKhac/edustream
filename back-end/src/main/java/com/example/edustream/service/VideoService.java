@@ -12,23 +12,19 @@ import com.example.edustream.entity.enums.VideoStatus;
 import com.example.edustream.entity.enums.VideoType;
 import com.example.edustream.exception.ResourceNotFoundException;
 import com.example.edustream.mapper.VideoMapper;
-import com.example.edustream.repository.CategoryRepository;
-import com.example.edustream.repository.HashtagRepository;
-import com.example.edustream.repository.SubscriptionRepository;
-import com.example.edustream.repository.VideoRepository;
+import com.example.edustream.repository.*;
 import com.example.edustream.util.StringUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.*;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -46,6 +42,7 @@ public class VideoService {
     private final SimpMessagingTemplate messagingTemplate;
     private final S3Service s3Service;
     private final ViolationService  violationService;
+    private final VideoLikeRepository  videoLikeRepository;
 
     @Value("${aws.s3.bucket}")
     private String bucketName;
@@ -248,11 +245,21 @@ public class VideoService {
         return new PageResponse<>(dtoPage);
     }
 
-    public VideoResponseDto getVideoById(long videoId) {
+    public VideoResponseDto getVideoById(long videoId, UserPrincipal userPrincipal) {
         Video video = videoRepository.findByIdWithDetails(videoId)
                 .orElseThrow(() -> new ResourceNotFoundException("Video không tồn tại với ID: " + videoId));
 
-        return videoMapper.toVideoResponseDto(video);
+        VideoResponseDto dto = videoMapper.toVideoResponseDto(video);
+
+        // Nếu user đã đăng nhập, kiểm tra xem họ đã thích video này chưa
+        if (userPrincipal != null) {
+            boolean isLiked = videoLikeRepository.existsByUserIdAndVideoId(userPrincipal.getUser().getId(), videoId);
+            dto.setLiked(isLiked);
+        } else {
+            dto.setLiked(false);
+        }
+
+        return dto;
     }
     @Transactional
     public VideoUploadResponseDto updateVideo(long videoId, VideoUpdateRequestDto request, UserPrincipal userPrincipal) {
@@ -400,5 +407,132 @@ public class VideoService {
 
         // 5. Gọi ViolationService để tạo vi phạm, cộng gậy và gửi thông báo hệ thống
         violationService.createViolation(violationRequestDto);
+    }
+    public PageResponse<VideoResponseDto> getRelatedVideos(Long videoId, int page) {
+        // 1. Tìm video gốc để lấy dữ liệu làm gốc gợi ý
+        Video currentVideo = videoRepository.findByIdWithDetails(videoId)
+                .orElseThrow(() -> new ResourceNotFoundException("Video không tồn tại với ID: " + videoId));
+
+        // 2. Trích xuất danh sách tên danh mục và hashtag dưới dạng List<String>
+        List<String> categoryNames = currentVideo.getCategories().stream()
+                .map(Category::getCategoryName)
+                .collect(Collectors.toList());
+
+        List<String> hashtagNames = currentVideo.getHashtags().stream()
+                .map(Hashtag::getHashtagName)
+                .collect(Collectors.toList());
+
+        // Đảm bảo list không rỗng để tránh lỗi cú pháp SQL IN
+        if (categoryNames.isEmpty()) categoryNames.add("");
+        if (hashtagNames.isEmpty()) hashtagNames.add("");
+
+        Long authorId = currentVideo.getUser().getId();
+
+        // 3. Lấy toàn bộ video thỏa mãn (Hoặc tác giả, Hoặc Category, Hoặc Hashtag)
+        List<Video> rawVideos = videoRepository.findRelatedVideosRaw(
+                currentVideo.getId(),
+                authorId,
+                categoryNames,
+                hashtagNames
+        );
+
+        // 4. Định nghĩa hàm tính điểm chính xác bằng Java (Có tính thêm trọng số Hashtag nếu bạn muốn)
+        java.util.function.ToIntFunction<Video> calculateScore = video -> {
+            int score = 0;
+
+            // Cùng tác giả: +2 điểm
+            if (video.getUser() != null && video.getUser().getId().equals(authorId)) {
+                score += 2;
+            }
+
+            // Cùng danh mục: +3 điểm
+            boolean hasMatchingCategory = video.getCategories().stream()
+                    .anyMatch(c -> categoryNames.contains(c.getCategoryName()));
+            if (hasMatchingCategory) {
+                score += 3;
+            }
+
+            // Cùng hashtag: +1 điểm (Bổ sung thêm để tối ưu thuật toán gợi ý của bạn)
+            boolean hasMatchingHashtag = video.getHashtags().stream()
+                    .anyMatch(h -> hashtagNames.contains(h.getHashtagName()));
+            if (hasMatchingHashtag) {
+                score += 1;
+            }
+
+            return score;
+        };
+
+        // 5. Sắp xếp: Điểm cao đứng trước, bằng điểm thì video mới đứng trước
+        List<Video> sortedVideos = rawVideos.stream()
+                .sorted(Comparator.comparingInt(calculateScore).reversed()
+                        .thenComparing(Video::getCreatedAt, Comparator.nullsLast(Comparator.reverseOrder())))
+                .collect(Collectors.toList());
+
+        // 6. Phân trang thủ công trên bộ nhớ (In-Memory Pagination)
+        int pageSize = 10;
+        int totalElements = sortedVideos.size();
+        int start = Math.min(page * pageSize, totalElements);
+        int end = Math.min((page + 1) * pageSize, totalElements);
+
+        List<Video> pagedVideos = sortedVideos.subList(start, end);
+
+        // 7. Map sang DTO và đóng gói kết quả trả về
+        List<VideoResponseDto> dtos = pagedVideos.stream()
+                .map(videoMapper::toVideoResponseDto)
+                .collect(Collectors.toList());
+
+        Pageable pageable = PageRequest.of(page, pageSize);
+        Page<VideoResponseDto> dtoPage = new PageImpl<>(dtos, pageable, totalElements);
+
+        return new PageResponse<>(dtoPage);
+    }
+    @Transactional
+    public VideoResponseDto toggleLikeVideo(Long videoId, UserPrincipal userPrincipal) {
+        User user = userPrincipal.getUser();
+
+        Video video = videoRepository.findById(videoId)
+                .orElseThrow(() -> new ResourceNotFoundException("Video không tồn tại với ID: " + videoId));
+
+        // Tìm xem user đã từng like video này chưa
+        Optional<VideoLike> existingLike = videoLikeRepository.findByUserIdAndVideoId(user.getId(), videoId);
+
+        boolean isLikedNow;
+
+        if (existingLike.isPresent()) {
+            // 1. Nếu ĐÃ LIKE RỒI -> Thực hiện UNLIKE
+            videoLikeRepository.delete(existingLike.get()); // Xóa dòng lưu trữ trong bảng trung gian
+            video.setLikeCount(Math.max(0, video.getLikeCount() - 1)); // Giảm số lượng like tổng (tránh âm)
+            isLikedNow = false;
+        } else {
+            // 2. Nếu CHƯA LIKE -> Thực hiện LIKE
+            VideoLike newLike = new VideoLike(user, video);
+            videoLikeRepository.save(newLike); // Lưu vào bảng trung gian
+            video.setLikeCount(video.getLikeCount() + 1); // Tăng số lượng like tổng
+            isLikedNow = true;
+        }
+
+        Video updatedVideo = videoRepository.save(video);
+
+        // Map sang DTO và gán trạng thái isLiked hiện tại để FE cập nhật UI
+        VideoResponseDto responseDto = videoMapper.toVideoResponseDto(updatedVideo);
+        responseDto.setLiked(isLikedNow);
+
+        return responseDto;
+    }
+
+    public PageResponse<VideoResponseDto> searchVideos(String keyword, int page) {
+        // 1. Cấu hình phân trang: 10 item/trang, sắp xếp giảm dần theo thời gian tạo (mới nhất lên đầu)
+        Pageable pageable = PageRequest.of(page, 10, Sort.by("createdAt").descending());
+
+        // 2. Gọi Repository thực hiện tìm kiếm dạng %LIKE% hạ tầng Database
+        // Nếu keyword truyền vào bị null hoặc rỗng, có thể handle lấy chuỗi trống "" để không lỗi dữ liệu
+        String searchKeyword = (keyword != null) ? keyword.trim() : "";
+        Page<Video> videoPage = videoRepository.findByTitleContainingIgnoreCase(searchKeyword, pageable);
+
+        // 3. Chuyển đổi dữ liệu Entity Page sang DTO Page thông qua Map Struct / VideoMapper
+        Page<VideoResponseDto> dtoPage = videoPage.map(videoMapper::toVideoResponseDto);
+
+        // 4. Đóng gói kết quả trả về cấu trúc PageResponse quy định
+        return new PageResponse<>(dtoPage);
     }
 }

@@ -25,6 +25,7 @@ import Danshboard from "./admin/pages/Danshboard";
 import ManageVideosAmin from "./admin/pages/ManageVideos";
 import ManageUsers from "./admin/pages/ManageUsers";
 import ManageReports from "./admin/pages/ManageReports";
+import ResultSearchVideo from "./pages/ResultSearchVideo";
 
 function App() {
   const { checkAuthStatus, user, isAuthenticated } = useAuthStore();
@@ -70,6 +71,7 @@ function App() {
         <Routes>
           <Route element={<MainLayout />}>
             <Route path="/" element={<Home />} />
+            <Route path="/search" element={<ResultSearchVideo />} />
             <Route path="/playlist" element={<PlayList />} />
             <Route
               path="/playlist/:playlistVideo"

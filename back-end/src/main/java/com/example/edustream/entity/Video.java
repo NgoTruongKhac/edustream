@@ -28,6 +28,13 @@ public class Video extends AbstractEntity<Video> {
     @Column(name = "duration")
     private long duration;
 
+    @Column(name = "view")
+    private long view=0;
+
+    @Column(name = "like_count")
+    private long likeCount=0;
+
+
     @Column(name = "video_type")
     @Enumerated(EnumType.STRING)
     private VideoType videoType;

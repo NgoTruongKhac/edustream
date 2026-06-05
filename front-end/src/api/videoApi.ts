@@ -126,3 +126,33 @@ export const rejectVideo = async (
   const response = await api.patch(`/videos/${videoId}/reject`, data);
   return response.data;
 };
+
+export const getRelatedVideos = async (videoId: number, page: number = 0) => {
+  const response = await api.get(`/videos/${videoId}/related`, {
+    params: { page },
+  });
+  return response.data;
+};
+
+export const trackVideoView = async (
+  videoId: number,
+  userIdentifier: string,
+) => {
+  const response = await api.post("/videos/view-event", {
+    videoId,
+    userIdentifier,
+  });
+  return response.data;
+};
+
+export const likeVideo = async (videoId: number) => {
+  const response = await api.patch(`/videos/${videoId}/like`);
+  return response.data;
+};
+
+export const searchVideos = async (keyword: string, page: number = 0) => {
+  const response = await api.get("/videos/search", {
+    params: { keyword, page },
+  });
+  return response.data;
+};

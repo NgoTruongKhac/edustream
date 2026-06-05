@@ -18,6 +18,9 @@ public class VideoResponseDto {
     private String thumbnail;
     private String description;
     private long duration;
+    private long view;
+    private long likeCount;
+    private boolean isLiked;
     private VideoType videoType;
     private VideoStatus videoStatus;
     private String videoUrl;

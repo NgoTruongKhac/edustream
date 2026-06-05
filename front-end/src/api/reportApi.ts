@@ -17,3 +17,13 @@ export const createReport = async (reportData: ReportRequestDto) => {
   const response = await api.post("/reports", reportData);
   return response.data;
 };
+
+export const acceptReport = async (reportId: number) => {
+  const response = await api.patch(`/reports/${reportId}/accept`);
+  return response.data;
+};
+
+export const rejectReport = async (reportId: number) => {
+  const response = await api.patch(`/reports/${reportId}/reject`);
+  return response.data;
+};
