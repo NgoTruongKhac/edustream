@@ -12,16 +12,13 @@ import org.mapstruct.NullValuePropertyMappingStrategy;
 @Mapper(componentModel = "spring", nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
 public interface NotificationMapper {
 
-    // Map từ DTO sang Entity (dùng cho createNotification)
-    // sender/recipient sẽ được set thủ công trong service
     @Mapping(target = "sender", ignore = true)
     @Mapping(target = "recipient", ignore = true)
     @Mapping(target = "type", source = "notificationType")
     Notification toNotification(NotificationRequestDto notificationRequestDto);
 
-    // Map từ Entity sang ResponseDto (fullName, avatar từ sender)
     @Mapping(target = "fullName", source = "sender.fullName")
     @Mapping(target = "avatar", source = "sender.avatar")
-    @Mapping(target = "thumbnail", ignore = true) // set thủ công từ Video
+    @Mapping(target = "thumbnail", ignore = true)
     NotificationResponseDto toNotificationResponseDto(Notification notification);
 }

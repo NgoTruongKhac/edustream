@@ -20,8 +20,8 @@ public class CloudinaryService {
                 file.getBytes(),
                 ObjectUtils.asMap(
                         "public_id", publicId,
-                        "overwrite", true,          // Ghi đè ảnh cũ cùng public_id
-                        "invalidate", true,         // Xóa cache CDN của ảnh cũ ngay lập tức
+                        "overwrite", true,
+                        "invalidate", true,
                         "resource_type", "image"
                 )
         );

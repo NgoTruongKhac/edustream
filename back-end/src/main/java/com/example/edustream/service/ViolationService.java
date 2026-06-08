@@ -34,7 +34,6 @@ public class ViolationService {
 
     @Transactional
     public ViolationResponseDto createViolation(ViolationRequestDto dto) {
-        // 1. Tìm thông tin User và Video
         User user = userRepository.findById(dto.getUserId())
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
@@ -43,25 +42,21 @@ public class ViolationService {
             video = videoRepository.findById(dto.getVideoId()).orElse(null);
         }
 
-        // 2. Tạo và lưu Violation
         Violation violation = new Violation();
         violation.setUser(user);
         violation.setVideo(video);
         violation.setViolationType(dto.getViolationType());
         violation.setReason(dto.getReason());
-        violation.setStrikeCount(1); // Mặc định tăng 1 strike
+        violation.setStrikeCount(1);
         violation = violationRepository.save(violation);
 
-        // 3. Cập nhật strikeCount cho User
         user.setStrikeCount(user.getStrikeCount() + 1);
 
-        // Kiểm tra nếu đạt 3 gậy thì block
         if (user.getStrikeCount() >= 3) {
             blockUserLogic(user);
         }
         userRepository.save(user);
 
-        // 4. Tạo Notification & Gửi Realtime
         sendViolationNotification(user, dto.getViolationType(), video);
 
         return violationMapper.toViolationResponseDto(violation);
@@ -75,7 +70,6 @@ public class ViolationService {
         userRepository.save(user);
     }
 
-    // Helper logic để tái sử dụng
     private void blockUserLogic(User user) {
         user.setUserStatus(UserStatus.BLOCKED);
     }
@@ -83,7 +77,6 @@ public class ViolationService {
     private void sendViolationNotification(User recipient, ViolationType type, Video video) {
         String message = "Hệ thống cảnh báo: " + type.toString();
 
-        // Tạo DTO gửi cho NotificationService
         NotificationRequestDto notifDto = new NotificationRequestDto();
         notifDto.setRecipientId(recipient.getId());
         notifDto.setSenderId(null); // Hệ thống gửi
@@ -91,10 +84,8 @@ public class ViolationService {
         notifDto.setNotificationType(NotificationType.SYSTEM);
         notifDto.setMessage(message);
 
-        // Lưu vào Database
         NotificationResponseDto response = notificationService.createNotification(notifDto);
 
-        // Gửi qua WebSocket nếu user online
         if (onlineUserService.isOnline(recipient.getId())) {
             messagingTemplate.convertAndSend(
                     "/topic/notification/" + recipient.getId(),

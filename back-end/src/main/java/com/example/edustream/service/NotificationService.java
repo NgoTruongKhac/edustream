@@ -34,28 +34,24 @@ public class NotificationService {
     public NotificationResponseDto createNotification(NotificationRequestDto dto) {
         Notification notification = notificationMapper.toNotification(dto);
 
-        // 1. Kiểm tra và set Recipient (Luôn luôn phải có)
         User recipient = userRepository.getReferenceById(dto.getRecipientId());
         notification.setRecipient(recipient);
 
-        // 2. REFACTOR: Kiểm tra senderId trước khi truy vấn proxy nhằm tránh lỗi Null
         if (dto.getSenderId() != null) {
             User sender = userRepository.getReferenceById(dto.getSenderId());
             notification.setSender(sender);
         } else {
-            notification.setSender(null); // Hệ thống gửi thì không có người dùng cụ thể
+            notification.setSender(null);
         }
 
         Notification saved = notificationRepository.save(notification);
 
-        // 3. REFACTOR: Chỉ load lại chi tiết sender khi senderId tồn tại
         if (dto.getSenderId() != null) {
             saved.setSender(userRepository.findById(dto.getSenderId()).orElseThrow());
         }
 
         NotificationResponseDto response = notificationMapper.toNotificationResponseDto(saved);
 
-        // 4. Set thumbnail nếu có referenceId
         if (dto.getReferenceId() != null) {
             videoRepository.findById(dto.getReferenceId())
                     .ifPresent(video -> response.setThumbnail(video.getThumbnail()));
@@ -68,7 +64,6 @@ public class NotificationService {
     public PageResponse<NotificationResponseDto> getNotificationsByUserId(UserPrincipal userPrincipal) {
         Long userId = userPrincipal.getUser().getId();
 
-        // Lấy 10 notifications mới nhất, sender đã được JOIN FETCH
         Pageable pageable = PageRequest.of(0, 10);
         Page<Notification> notificationPage =
                 notificationRepository.findTop10ByRecipientId(userId, pageable);

@@ -86,7 +86,6 @@ public class UserController {
     public ResponseEntity<?> changeEmail(@Valid @RequestBody ChangeEmailRequestDto changeEmailRequestDto) {
         userService.changeEmail(changeEmailRequestDto);
 
-        // Trả về JSON: {"message": "otp sent to your email"}
         return ResponseEntity.ok(Map.of("message", "otp sent to your email"));
     }
 

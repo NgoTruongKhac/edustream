@@ -62,7 +62,7 @@ public class Video extends AbstractEntity<Video> {
 
     @ManyToMany(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinTable(
-            name = "video_categories", // Bảng trung gian tự động tạo ra
+            name = "video_categories",
             joinColumns = @JoinColumn(name = "video_id"),
             inverseJoinColumns = @JoinColumn(name = "category_id")
     )
@@ -70,7 +70,7 @@ public class Video extends AbstractEntity<Video> {
 
     @ManyToMany(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinTable(
-            name = "video_hashtags", // Bảng trung gian tự động tạo ra
+            name = "video_hashtags",
             joinColumns = @JoinColumn(name = "video_id"),
             inverseJoinColumns = @JoinColumn(name = "hashtag_id")
     )

@@ -43,18 +43,15 @@ public class OAuth2UserService extends DefaultOAuth2UserService{
 
 	private User processOAuth2User(OAuth2UserRequest oAuth2UserRequest, OAuth2User oAuth2User) {
 		// TODO Auto-generated method stub
-		//1 get email from OAuth2UserInfo
-		
+
 		String registrationId=oAuth2UserRequest.getClientRegistration().getRegistrationId();
 		OAuth2UserInfo oAuth2UserInfo= OAuth2UserInfoFactory.getOAuth2UserInfo(registrationId, oAuth2User.getAttributes());
 		
-		//2 findByProviderId 
-		
+
 		Optional<User> userOptional=userRepository.findByProviderId(oAuth2UserInfo.getProviderId());
 		User user;
 		
-		//3 if user already exists -> updateExistingUser
-		
+
 		if(userOptional.isPresent()) {
 			user=userOptional.get();
 			
@@ -73,8 +70,7 @@ public class OAuth2UserService extends DefaultOAuth2UserService{
 		
 		return user;
 		
-		//4 if user does not exist -> registerNewUser
-		
+
 		
 	}
 	

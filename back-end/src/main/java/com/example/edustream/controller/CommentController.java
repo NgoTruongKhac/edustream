@@ -22,7 +22,6 @@ public class CommentController {
 
     private final CommentService commentService;
 
-    // API tạo bình luận gốc
     @PostMapping
     public ResponseEntity<CommentResponseDto> createComment(
             @AuthenticationPrincipal UserPrincipal userPrincipal,
@@ -32,7 +31,6 @@ public class CommentController {
         return ResponseEntity.ok(response);
     }
 
-    // API trả lời bình luận
     @PostMapping("/reply")
     public ResponseEntity<CommentResponseDto> replyComment(
             @AuthenticationPrincipal UserPrincipal userPrincipal,
@@ -42,7 +40,6 @@ public class CommentController {
         return ResponseEntity.ok(response);
     }
 
-    // API Like / Unlike bình luận
     @PostMapping("/like")
     public ResponseEntity<?> likeComment(
             @AuthenticationPrincipal UserPrincipal userPrincipal,

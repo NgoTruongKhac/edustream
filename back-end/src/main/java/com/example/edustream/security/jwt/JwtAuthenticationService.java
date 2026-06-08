@@ -20,16 +20,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class JwtAuthenticationService {
 
-	
-//	@Value("${jwt.secret-key}")
-//	private String secret;
-//
-//	
-//	@Value("${jwt.access-token.expiration}")
-//	private Long accessTokenExp;
-//	@Value("${jwt.refresh-token.expiration}")
-//	private Long refreshTokeExp;
-	
+
  private final JwtProperties jwtProperties;
 	
     private SecretKey getSigningKey() {

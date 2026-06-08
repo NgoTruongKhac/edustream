@@ -8,9 +8,7 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface CommentRepository extends JpaRepository<Comment, Long> {
-    // Lấy comment gốc (giữ nguyên)
     Page<Comment> findByVideoIdAndParentIsNullOrderByCreatedAtDesc(Long videoId, Pageable pageable);
 
-    // Lấy danh sách reply của 1 comment cụ thể
     Page<Comment> findByParentIdOrderByCreatedAtAsc(Long parentId, Pageable pageable);
 }

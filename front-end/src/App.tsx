@@ -26,6 +26,7 @@ import ManageVideosAmin from "./admin/pages/ManageVideos";
 import ManageUsers from "./admin/pages/ManageUsers";
 import ManageReports from "./admin/pages/ManageReports";
 import ResultSearchVideo from "./pages/ResultSearchVideo";
+import AdminRoute from "./admin/components/AdminRoute";
 
 function App() {
   const { checkAuthStatus, user, isAuthenticated } = useAuthStore();
@@ -84,11 +85,13 @@ function App() {
             <Route path="/manage-videos" element={<ManageVideos />} />
             <Route path="/watch/:videoId" element={<VideoWatch />} />
           </Route>
-          <Route path="/admin" element={<MainLayoutAdmin />}>
-            <Route path="dashboard" element={<Danshboard />} />
-            <Route path="manage-users" element={<ManageUsers />} />
-            <Route path="manage-videos" element={<ManageVideosAmin />} />
-            <Route path="manage-reports" element={<ManageReports />} />
+          <Route element={<AdminRoute />}>
+            <Route path="/admin" element={<MainLayoutAdmin />}>
+              <Route path="dashboard" element={<Danshboard />} />
+              <Route path="manage-users" element={<ManageUsers />} />
+              <Route path="manage-videos" element={<ManageVideosAmin />} />
+              <Route path="manage-reports" element={<ManageReports />} />
+            </Route>
           </Route>
           <Route path="/login" element={<Login />} />
 

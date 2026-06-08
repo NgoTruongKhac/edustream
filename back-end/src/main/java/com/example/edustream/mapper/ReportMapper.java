@@ -10,7 +10,6 @@ import org.mapstruct.NullValuePropertyMappingStrategy;
 @Mapper(componentModel = "spring", nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
 public interface ReportMapper {
 
-    // Ánh xạ từ Entity sang Response DTO
     @Mapping(source = "reportedUser.id", target = "userId")
     @Mapping(source = "reportedUser.avatar", target = "avatar")
     @Mapping(source = "reportedUser.fullName", target = "fullName")
@@ -20,9 +19,8 @@ public interface ReportMapper {
     @Mapping(source = "reportedVideo.thumbnail", target = "thumbnail")
     ReportResponseDto toReportResponseDto(Report report);
 
-    // Ánh xạ từ Request DTO sang Entity (chỉ ánh xạ các trường cơ bản, ID của User/Video sẽ xử lý ở Service)
     @Mapping(target = "reportedUser", ignore = true)
     @Mapping(target = "reportedVideo", ignore = true)
-    @Mapping(target = "reportStatus", constant = "PENDING") // Mặc định khi tạo là PENDING
+    @Mapping(target = "reportStatus", constant = "PENDING")
     Report toReport(ReportRequestDto reportRequestDto);
 }

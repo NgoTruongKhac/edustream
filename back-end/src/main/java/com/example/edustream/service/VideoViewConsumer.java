@@ -25,7 +25,6 @@ public class VideoViewConsumer {
 
         log.info("Consumer bắt đầu cập nhật Batch Write cho {} videos từ RabbitMQ", message.getVideoViewsMap().size());
 
-        // Lặp qua Map để thực thi UPDATE hàng loạt vào DB
         message.getVideoViewsMap().forEach((videoId, viewsToAdd) -> {
             try {
                 videoRepository.batchIncrementVideoView(videoId, viewsToAdd);

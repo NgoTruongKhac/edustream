@@ -19,28 +19,25 @@ public interface VideoMapper {
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "user", ignore = true)
-    @Mapping(target = "categories", ignore = true) // <--- QUAN TRỌNG
-    @Mapping(target = "hashtags", ignore = true)   // <--- QUAN TRỌNG
+    @Mapping(target = "categories", ignore = true)
+    @Mapping(target = "hashtags", ignore = true)
     @Mapping(target = "videoType", constant = "YOUTUBE")
     @Mapping(target = "uploadStatus", constant = "PUBLISHED")
     Video toVideo(VideoYoutubeRequestDto request);
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "user", ignore = true)
-    @Mapping(target = "categories", ignore = true) // <--- QUAN TRỌNG
-    @Mapping(target = "hashtags", ignore = true)   // <--- QUAN TRỌNG
+    @Mapping(target = "categories", ignore = true)
+    @Mapping(target = "hashtags", ignore = true)
     @Mapping(target = "videoType", constant = "UPLOAD")
     @Mapping(target = "uploadStatus", constant = "PENDING")
     Video toVideo(VideoUploadRequestDto request);
 
-    // --- Chiều 2: Map từ Entity sang Response DTO (Đọc dữ liệu) ---
-    // Helper methods (giữ nguyên logic của bạn)
     @Mapping(target = "userId", source = "user.id")
     @Mapping(target = "fullName", source = "user.fullName")
     @Mapping(target = "username", source = "user.username")
     @Mapping(target = "avatar", source = "user.avatar")
     @Mapping(target = "subscribersCount", source = "user.subscribersCount")
-    // Sử dụng parameter 'video' để khớp với tham số truyền vào
     @Mapping(target = "categories", expression = "java(mapCategories(video.getCategories()))")
     @Mapping(target = "hashtags", expression = "java(mapHashtags(video.getHashtags()))")
     VideoResponseDto toVideoResponseDto(Video video);

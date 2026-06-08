@@ -13,6 +13,6 @@ import java.util.Map;
 public class DashboardResponseDto {
     private long totalUsers;
     private long totalVideos;
-    private Map<LocalDate, Long> usersGrowth; // Dữ liệu tăng trưởng user theo ngày
-    private Map<LocalDate, Long> videosGrowth; // Dữ liệu tăng trưởng video theo ngày
+    private Map<LocalDate, Long> usersGrowth;
+    private Map<LocalDate, Long> videosGrowth;
 }

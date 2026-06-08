@@ -8,7 +8,7 @@ import lombok.Setter;
 public class VideoFilterRequestDto {
     private String category;
     private int page = 0;
-    private int size = 10; // Có thể mở rộng cho phép client chọn số lượng item mỗi trang
+    private int size = 10;
     private String sortBy = "newest";
 
 }

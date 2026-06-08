@@ -13,22 +13,18 @@ public class Comment extends AbstractEntity<Comment> {
     @Column(columnDefinition = "TEXT", nullable = false)
     private String content;
 
-    // VIDEO
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "video_id", nullable = false)
     private Video video;
 
-    // USER
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    // SELF JOIN (reply)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_id")
     private Comment parent;
 
-    // Đếm sẵn để tối ưu performance
     @Column(name = "like_count")
     private long likeCount = 0;
 

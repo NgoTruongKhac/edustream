@@ -16,14 +16,20 @@ const CATEGORIES = [
 const SORT_OPTIONS = [
   { label: "Mới nhất", value: "newest" },
   { label: "Cũ nhất", value: "oldest" },
+  { label: "Lượt xem nhiều nhất", value: "mostviewed" },
 ];
 
 export default function Home() {
   const [selectedCategory, setSelectedCategory] = useState("");
-  const [sortBy, setSortBy] = useState<"newest" | "oldest">("newest");
+  const [sortBy, setSortBy] = useState<"newest" | "oldest" | "mostviewed">(
+    "newest",
+  );
   const [videos, setVideos] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedVideoId, setSelectedVideoId] = useState<number | null>(null);
+  const currentTitle =
+    SORT_OPTIONS.find((opt) => opt.value === sortBy)?.label ||
+    "Danh sách video";
 
   useEffect(() => {
     const fetchVideos = async () => {
@@ -71,14 +77,21 @@ export default function Home() {
         </div>
 
         {/* Sort Filter */}
+        {/* Sort Filter */}
         <div className="pb-4 flex-shrink-0">
           <select
-            className="select select-sm h-9 rounded-lg bg-base-200 border-none font-medium text-base-content/80"
+            className="cursor-pointer select select-sm h-9 rounded-lg bg-base-200 border-none font-medium text-base-content/80 w-auto min-w-max whitespace-nowrap pr-8"
             value={sortBy}
-            onChange={(e) => setSortBy(e.target.value as "newest" | "oldest")}
+            onChange={(e) =>
+              setSortBy(e.target.value as "newest" | "oldest" | "mostviewed")
+            }
           >
             {SORT_OPTIONS.map((opt) => (
-              <option key={opt.value} value={opt.value}>
+              <option
+                key={opt.value}
+                value={opt.value}
+                className="whitespace-nowrap"
+              >
                 {opt.label}
               </option>
             ))}
@@ -86,8 +99,8 @@ export default function Home() {
         </div>
       </div>
 
-      <h2 className="text-xl sm:text-2xl font-bold mt-4 mb-6">
-        Video phổ biến
+      <h2 className="text-xl sm:text-2xl font-bold mt-4 mb-6 capitalization">
+        {`Video ${currentTitle}`}
       </h2>
 
       {loading ? (

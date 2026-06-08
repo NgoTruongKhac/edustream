@@ -29,7 +29,6 @@ public class ReportController {
         PageResponse<ReportResponseDto> response = reportService.getReports(page);
         return ResponseEntity.ok(response);
     }
-    // ... Các hàm cũ giữ nguyên ...
 
     @PreAuthorize("hasRole('ADMIN')")
     @PatchMapping("/{id}/accept")

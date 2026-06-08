@@ -85,20 +85,16 @@ public class AuthService {
 		Long otpExp = (Long) session.getAttribute("otp_exp");
 		RegisterRequestDto registerRequestDto = (RegisterRequestDto) session.getAttribute("register_request");
 
-		// 1. Kiểm tra OTP
 		if (sessionOtp == null || !sessionOtp.equals(otpRequestDto.getOtp())) {
 			throw new NotMatchingOtpException("Invalid OTP code");
 		}
 
-		// 2. Kiểm tra hết hạn
 		if (System.currentTimeMillis() > otpExp) {
 			throw new ExpiredOtpException("OTP has expired. Please request a new one.");
 		}
 
-		// 3. Mapping và tạo thông tin User
 		User newUser = userMapper.toUser(registerRequestDto);
 
-		// 4. Logic tạo Handle Name Unique
 		String uniqueUsername = generateUniqueHandle(registerRequestDto.getFullName());
 		newUser.setUsername(uniqueUsername);
 
@@ -169,7 +165,7 @@ public class AuthService {
 		Cookie cookie = new Cookie("refreshToken", null);
 		cookie.setHttpOnly(true);
 		cookie.setPath("/");
-		cookie.setMaxAge(0); // QUAN TRỌNG: xoá cookie
+		cookie.setMaxAge(0);
 
 		// cookie.setSecure(true); // bật ở production (HTTPS)
 
@@ -187,9 +183,9 @@ public class AuthService {
 	private void addCookie(HttpServletResponse response, String name, String value, long maxAgeInMilliseconds) {
 		Cookie cookie = new Cookie(name, value);
 		cookie.setHttpOnly(true);
-		cookie.setPath("/"); // Path "/" có nghĩa là cookie sẽ được gửi cho mọi request trên domain
+		cookie.setPath("/");
 		cookie.setMaxAge((int) TimeUnit.MILLISECONDS.toSeconds(maxAgeInMilliseconds));
-		// cookie.setSecure(true); // <-- BẮT BUỘC bật cờ này ở môi trường Production (khi dùng HTTPS)
+		// cookie.setSecure(true); //môi trường Production (khi dùng HTTPS)
 		response.addCookie(cookie);
 	}
 

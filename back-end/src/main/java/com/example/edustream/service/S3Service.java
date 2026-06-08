@@ -17,7 +17,7 @@ import java.time.Duration;
 public class S3Service {
 
     private final S3Presigner s3Presigner;
-    private final S3Client s3Client; // Inject thêm S3Client để thực thi lệnh xóa
+    private final S3Client s3Client;
 
     @Value("${aws.s3.bucket}")
     private String bucketName;
@@ -38,7 +38,6 @@ public class S3Service {
         return presignedRequest.url().toString();
     }
 
-    // Hàm xóa object trên S3
     public void deleteFile(String objectKey) {
         DeleteObjectRequest deleteObjectRequest = DeleteObjectRequest.builder()
                 .bucket(bucketName)

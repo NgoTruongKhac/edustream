@@ -11,6 +11,7 @@ interface User {
   email: string;
   avatar: string;
   coverImage: string;
+  role: string;
   authProvider: string;
 }
 

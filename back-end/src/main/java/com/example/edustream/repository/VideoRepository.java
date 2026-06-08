@@ -19,7 +19,6 @@ public interface VideoRepository extends JpaRepository<Video, Long> {
 
     long count();
     List<Video> findAllByCreatedAtAfter(Instant after);
-    // Fetch dữ liệu liên quan để tránh LazyInitializationException
     @Query("SELECT DISTINCT v FROM Video v " +
             "LEFT JOIN FETCH v.categories " +
             "LEFT JOIN FETCH v.hashtags " +
@@ -69,4 +68,10 @@ public interface VideoRepository extends JpaRepository<Video, Long> {
     void batchIncrementVideoView(@Param("videoId") Long videoId, @Param("viewsToAdd") long viewsToAdd);
 
     Page<Video> findByTitleContainingIgnoreCase(String title, Pageable pageable);
+
+    @Query("SELECT DISTINCT v FROM Video v " +
+            "LEFT JOIN FETCH v.user " +
+            "LEFT JOIN FETCH v.categories " +
+            "LEFT JOIN FETCH v.hashtags")
+    Page<Video> findAllVideosWithDetails(Pageable pageable);
 }

@@ -30,12 +30,6 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 	private String frontEndDomain;
 	private final JwtProperties jwtProperties;
     
-//    // Giả sử bạn định nghĩa thời gian sống của token trong application.properties
-//    @Value("${application.security.jwt.expiration}")
-//    private long accessTokenExpiration;
-//    @Value("${application.security.jwt.refresh-token.expiration}")
-//    private long refreshTokenExpiration;
-
 
 	@Override
 	public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
@@ -63,25 +57,19 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 		String accessToken = jwtService.generateToken(userPrincipal);
 		String refreshToken = jwtService.generateRefreshToken(userPrincipal);
 
-		// ===== 1. Set refreshToken vào HttpOnly cookie =====
 		addCookie(response, "refreshToken", refreshToken, jwtProperties.getRefreshTokenExpiration());
 
-		// ===== 2. Encode accessToken để đưa vào URL =====
 		String encodedAccessToken = URLEncoder.encode(accessToken, StandardCharsets.UTF_8);
 
-		// ===== 3. Redirect kèm param accessToken =====
 		return redirectUri + "?accessToken=" + encodedAccessToken;
 	}
 
-    /**
-     * Helper để tạo và thêm cookie vào response
-     */
     private void addCookie(HttpServletResponse response, String name, String value, long maxAgeInMilliseconds) {
         Cookie cookie = new Cookie(name, value);
         cookie.setHttpOnly(true);
-        cookie.setPath("/"); // Path "/" có nghĩa là cookie sẽ được gửi cho mọi request trên domain
+        cookie.setPath("/");
         cookie.setMaxAge((int) TimeUnit.MILLISECONDS.toSeconds(maxAgeInMilliseconds));
-        // cookie.setSecure(true); // <-- BẮT BUỘC bật cờ này ở môi trường Production (khi dùng HTTPS)
+        // cookie.setSecure(true); //môi trường Production (khi dùng HTTPS)
         response.addCookie(cookie);
     }
 }

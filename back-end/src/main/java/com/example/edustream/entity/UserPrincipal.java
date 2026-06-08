@@ -31,7 +31,6 @@ public class UserPrincipal implements UserDetails, OAuth2User {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        // Thêm tiền tố ROLE_ vào trước tên của Role
         return List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole().name()));
     }
 

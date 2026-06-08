@@ -15,9 +15,6 @@ public class HttpCookieOAuth2AuthorizationRequestRepository implements Authoriza
     public static final String REDIRECT_URI_PARAM_COOKIE_NAME = "redirect_uri";
     private static final int COOKIE_EXPIRE_SECONDS = 180; // 3 phút
 
-    /**
-     * Tải thông tin yêu cầu xác thực từ cookie.
-     */
     @Override
     public OAuth2AuthorizationRequest loadAuthorizationRequest(HttpServletRequest request) {
         return CookieUtils.getCookie(request, OAUTH2_AUTHORIZATION_REQUEST_COOKIE_NAME)
@@ -25,10 +22,6 @@ public class HttpCookieOAuth2AuthorizationRequestRepository implements Authoriza
                 .orElse(null);
     }
 
-    /**
-     * Lưu thông tin yêu cầu xác thực vào cookie.
-     * Đồng thời lưu redirect_uri (nếu có) vào một cookie khác.
-     */
     @Override
     public void saveAuthorizationRequest(OAuth2AuthorizationRequest authorizationRequest, HttpServletRequest request, HttpServletResponse response) {
         if (authorizationRequest == null) {
@@ -43,19 +36,11 @@ public class HttpCookieOAuth2AuthorizationRequestRepository implements Authoriza
         }
     }
 
-    /**
-     * Xóa yêu cầu xác thực đã lưu.
-     * Đây là phương thức được gọi sau khi luồng xác thực hoàn tất (thành công hoặc thất bại).
-     */
     @Override
     public OAuth2AuthorizationRequest removeAuthorizationRequest(HttpServletRequest request, HttpServletResponse response) {
         return this.loadAuthorizationRequest(request);
     }
 
-    /**
-     * Phương thức helper để xóa các cookie liên quan.
-     * Sẽ được gọi bởi OAuth2AuthenticationFailureHandler.
-     */
     public void removeAuthorizationRequestCookies(HttpServletRequest request, HttpServletResponse response) {
         CookieUtils.deleteCookie(request, response, OAUTH2_AUTHORIZATION_REQUEST_COOKIE_NAME);
         CookieUtils.deleteCookie(request, response, REDIRECT_URI_PARAM_COOKIE_NAME);

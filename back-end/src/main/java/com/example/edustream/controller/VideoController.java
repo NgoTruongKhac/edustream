@@ -47,16 +47,14 @@ public class VideoController {
             @PathVariable String username,
             @RequestParam(value = "page", defaultValue = "0") int page) {
 
-        // Gọi service xử lý logic
         PageResponse<VideoResponseDto> response = videoService.getVideosByUsername(username, page);
 
-        // Trả về dữ liệu kèm theo status 200 OK
         return ResponseEntity.ok(response);
     }
     @GetMapping("/watch/{videoId}")
     public ResponseEntity<VideoResponseDto> getVideoById(
             @PathVariable Long videoId,
-            @AuthenticationPrincipal UserPrincipal userPrincipal) { // Thêm dòng này
+            @AuthenticationPrincipal UserPrincipal userPrincipal) {
 
         VideoResponseDto response = videoService.getVideoById(videoId, userPrincipal);
         return ResponseEntity.ok(response);
@@ -65,26 +63,21 @@ public class VideoController {
     public ResponseEntity<PageResponse<VideoResponseDto>> getAllVideos(
             @RequestParam(value = "page", defaultValue = "0") int page) {
 
-        // Gọi service xử lý logic
         PageResponse<VideoResponseDto> response = videoService.getAllVideos(page);
 
-        // Trả về dữ liệu kèm theo status 200 OK
         return ResponseEntity.ok(response);
     }
 
-    // Đã đổi endpoint thành /category để tránh lỗi Ambiguous mapping với getVideosByCurrentUser()
     @GetMapping("/category")
     public ResponseEntity<PageResponse<VideoResponseDto>> getVideosByCategory(
             @RequestParam String category,
             @RequestParam(value = "page", defaultValue = "0") int page) {
 
-        // Gọi service xử lý logic
         PageResponse<VideoResponseDto> response = videoService.getVideosByCategory(category, page);
 
-        // Trả về dữ liệu kèm theo status 200 OK
         return ResponseEntity.ok(response);
     }
-    @GetMapping("/filter") // Đổi tên endpoint cho mang tính tổng quát
+    @GetMapping("/filter")
     public ResponseEntity<PageResponse<VideoResponseDto>> filterVideos(
             @Valid @ModelAttribute VideoFilterRequestDto filterDto) {
 
@@ -105,10 +98,8 @@ public class VideoController {
             @PathVariable Long videoId,
             @AuthenticationPrincipal UserPrincipal userPrincipal) {
 
-        // Gọi service để cập nhật trạng thái
         VideoResponseDto responseDto = videoService.confirmVideoUpload(videoId, userPrincipal);
 
-        // Trả về dữ liệu kèm theo status 200 OK
         return ResponseEntity.ok(responseDto);
     }
     @DeleteMapping("/{id}")
@@ -118,7 +109,6 @@ public class VideoController {
         videoService.deleteVideoById(id, userPrincipal);
         return ResponseEntity.noContent().build();
     }
-    // Thêm endpoint vào VideoController
     @PutMapping("/{videoId}")
     public ResponseEntity<VideoUploadResponseDto> updateVideo(
             @PathVariable Long videoId,
@@ -142,7 +132,6 @@ public class VideoController {
             @PathVariable Long videoId,
             @Valid @RequestBody ViolationRequestDto violationRequestDto) {
 
-        // Đảm bảo videoId lấy từ URL đồng bộ với dữ liệu trong DTO gửi sang service
         violationRequestDto.setVideoId(videoId);
 
         videoService.rejectVideo(violationRequestDto);
@@ -171,7 +160,7 @@ public class VideoController {
     @PatchMapping("/{videoId}/like")
     public ResponseEntity<VideoResponseDto> likeVideo(
             @PathVariable Long videoId,
-            @AuthenticationPrincipal UserPrincipal userPrincipal) { // Thêm dòng này
+            @AuthenticationPrincipal UserPrincipal userPrincipal) {
 
         VideoResponseDto responseDto = videoService.toggleLikeVideo(videoId, userPrincipal);
         return ResponseEntity.ok(responseDto);

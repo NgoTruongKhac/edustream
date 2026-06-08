@@ -36,7 +36,6 @@ public class CommentService {
     private final OnlineUserService onlineUserService;
     private final SimpMessagingTemplate messagingTemplate;
 
-    // 1. CREATE COMMENT (Bình luận gốc)
     @Transactional
     public CommentResponseDto createComment(UserPrincipal userPrincipal, CommentRequestDto dto) {
         User currentUser = userPrincipal.getUser();
@@ -51,8 +50,6 @@ public class CommentService {
 
         Comment savedComment = commentRepository.save(comment);
 
-        // Gửi Notification cho chủ Video
-        // Chỉ gửi nếu người comment không phải là chủ video
         if (!video.getUser().getId().equals(currentUser.getId())) {
             sendInteractionNotification(
                     currentUser,
@@ -66,7 +63,6 @@ public class CommentService {
         return commentMapper.toCommentResponseDto(savedComment);
     }
 
-    // 2. REPLY COMMENT (Trả lời bình luận)
     @Transactional
     public CommentResponseDto replyComment(UserPrincipal userPrincipal, ReplyCommentRequestDto dto) {
         User currentUser = userPrincipal.getUser();
@@ -88,7 +84,6 @@ public class CommentService {
         parentComment.setReplyCount(parentComment.getReplyCount() + 1);
         commentRepository.save(parentComment);
 
-        // Gửi Notification cho chủ của bình luận gốc
         if (!parentComment.getUser().getId().equals(currentUser.getId())) {
             sendInteractionNotification(
                     currentUser,
@@ -102,7 +97,6 @@ public class CommentService {
         return commentMapper.toCommentResponseDto(savedReply);
     }
 
-    // 3. LIKE / UNLIKE COMMENT (Toggle Like)
     @Transactional
     public void likeComment(UserPrincipal userPrincipal, LikeCommentRequestDto dto) {
         User currentUser = userPrincipal.getUser();
@@ -122,8 +116,6 @@ public class CommentService {
             commentLikeRepository.save(newLike);
             comment.setLikeCount(comment.getLikeCount() + 1);
 
-            // Gửi Notification LIKE cho chủ của comment
-            // Lưu ý: referenceId ở đây vẫn là videoId để user click vào thông báo sẽ dẫn tới video
             if (!comment.getUser().getId().equals(currentUser.getId())) {
                 sendInteractionNotification(
                         currentUser,
@@ -136,11 +128,7 @@ public class CommentService {
         }
     }
 
-    /**
-     * Hàm helper dùng chung để gửi notification qua DB và Socket
-     */
     private void sendInteractionNotification(User sender, Long recipientId, Long videoId, NotificationType type, String message) {
-        // 1. Tạo notification trong DB thông qua NotificationService
         NotificationRequestDto notifDto = new NotificationRequestDto();
         notifDto.setSenderId(sender.getId());
         notifDto.setRecipientId(recipientId);
@@ -150,7 +138,6 @@ public class CommentService {
 
         NotificationResponseDto notificationResponse = notificationService.createNotification(notifDto);
 
-        // 2. Gửi Real-time qua WebSocket nếu recipient online
         if (onlineUserService.isOnline(recipientId)) {
             messagingTemplate.convertAndSend(
                     "/topic/notification/" + recipientId,
@@ -170,11 +157,10 @@ public class CommentService {
 
     @Transactional(readOnly = true)
     public PageResponse<CommentResponseDto> getRepliesByCommentId(Long commentId, int page) {
-        // Kiểm tra comment cha tồn tại
         commentRepository.findById(commentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Bình luận gốc không tồn tại"));
 
-        Pageable pageable = PageRequest.of(page, 5); // Thường reply load mỗi lần 5 cái
+        Pageable pageable = PageRequest.of(page, 5);
         Page<Comment> replyPage = commentRepository.findByParentIdOrderByCreatedAtAsc(commentId, pageable);
 
         return new PageResponse<>(replyPage.map(commentMapper::toCommentResponseDto));

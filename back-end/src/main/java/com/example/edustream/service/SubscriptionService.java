@@ -72,9 +72,6 @@ public class SubscriptionService {
         userRepository.save(channel);
     }
 
-    /**
-     * Lấy danh sách những người ĐÃ ĐĂNG KÝ kênh của mình (Followers)
-     */
     @Transactional(readOnly = true)
     public PageResponse<UserResponseDto> getMySubscribers(UserPrincipal userPrincipal, int page) {
         User currentUser = userPrincipal.getUser();
@@ -99,7 +96,6 @@ public class SubscriptionService {
     public boolean checkSubscription(UserPrincipal userPrincipal, String targetUsername) {
         User subscriber = userPrincipal.getUser();
 
-        // Tránh lỗi nếu check chính mình
         if (subscriber.getUsername().equals(targetUsername)) {
             return false;
         }

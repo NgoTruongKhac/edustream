@@ -25,15 +25,12 @@ public class DashboardService {
     public DashboardResponseDto getDashboard() {
         Instant oneWeekAgo = LocalDate.now().minusDays(7).atStartOfDay(ZoneOffset.UTC).toInstant();
 
-        // 1. Lấy tổng số lượng
         long totalUsers = userRepository.count();
         long totalVideos = videoRepository.count();
 
-        // 2. Lấy danh sách tăng trưởng trong tuần qua
         List<User> recentUsers = userRepository.findAllByCreatedAtAfter(oneWeekAgo);
         List<Video> recentVideos = videoRepository.findAllByCreatedAtAfter(oneWeekAgo);
 
-        // 3. Map dữ liệu theo ngày (LocalDate)
         Map<LocalDate, Long> usersGrowth = recentUsers.stream()
                 .collect(Collectors.groupingBy(
                         u -> LocalDate.ofInstant(u.getCreatedAt(), ZoneOffset.UTC),
