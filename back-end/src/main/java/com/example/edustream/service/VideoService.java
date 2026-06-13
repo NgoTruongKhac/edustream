@@ -22,10 +22,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Comparator;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -364,53 +361,52 @@ public class VideoService {
         Video currentVideo = videoRepository.findByIdWithDetails(videoId)
                 .orElseThrow(() -> new ResourceNotFoundException("Video không tồn tại với ID: " + videoId));
 
-        List<String> categoryNames = currentVideo.getCategories().stream()
+        Set<String> categoryNames = currentVideo.getCategories().stream()
                 .map(Category::getCategoryName)
-                .collect(Collectors.toList());
+                .collect(Collectors.toSet());
 
-        List<String> hashtagNames = currentVideo.getHashtags().stream()
+        Set<String> hashtagNames = currentVideo.getHashtags().stream()
                 .map(Hashtag::getHashtagName)
-                .collect(Collectors.toList());
-
-        if (categoryNames.isEmpty()) categoryNames.add("");
-        if (hashtagNames.isEmpty()) hashtagNames.add("");
+                .collect(Collectors.toSet());
 
         Long authorId = currentVideo.getUser().getId();
 
+        // Khắc phục triệt để lỗi ép kiểu chuỗi rỗng trong mệnh đề IN của SQL
+        List<String> queryCategories = categoryNames.isEmpty() ? List.of("__NO_CATEGORY__") : new ArrayList<>(categoryNames);
+        List<String> queryHashtags = hashtagNames.isEmpty() ? List.of("__NO_HASHTAG__") : new ArrayList<>(hashtagNames);
+
+        // Gọi Repository đã được tinh chỉnh gọn nhẹ
         List<Video> rawVideos = videoRepository.findRelatedVideosRaw(
                 currentVideo.getId(),
                 authorId,
-                categoryNames,
-                hashtagNames
+                queryCategories,
+                queryHashtags
         );
 
-        java.util.function.ToIntFunction<Video> calculateScore = video -> {
-            int score = 0;
-
-            if (video.getUser() != null && video.getUser().getId().equals(authorId)) {
-                score += 2;
-            }
+        // Giữ nguyên logic phân cấp tầng ưu tiên (1 -> 5) mượt mà như trước
+        java.util.function.ToIntFunction<Video> determinePriority = video -> {
+            boolean isSameUser = video.getUser() != null && video.getUser().getId().equals(authorId);
 
             boolean hasMatchingCategory = video.getCategories().stream()
                     .anyMatch(c -> categoryNames.contains(c.getCategoryName()));
-            if (hasMatchingCategory) {
-                score += 3;
-            }
 
             boolean hasMatchingHashtag = video.getHashtags().stream()
                     .anyMatch(h -> hashtagNames.contains(h.getHashtagName()));
-            if (hasMatchingHashtag) {
-                score += 1;
-            }
 
-            return score;
+            if (hasMatchingCategory && hasMatchingHashtag && isSameUser) return 1;
+            if ((hasMatchingCategory || hasMatchingHashtag) && isSameUser) return 2;
+            if (hasMatchingCategory || hasMatchingHashtag) return 3;
+            if (isSameUser) return 4;
+
+            return 5;
         };
 
         List<Video> sortedVideos = rawVideos.stream()
-                .sorted(Comparator.comparingInt(calculateScore).reversed()
+                .sorted(Comparator.comparingInt(determinePriority)
                         .thenComparing(Video::getCreatedAt, Comparator.nullsLast(Comparator.reverseOrder())))
                 .collect(Collectors.toList());
 
+        // Phân trang kết quả
         int pageSize = 10;
         int totalElements = sortedVideos.size();
         int start = Math.min(page * pageSize, totalElements);

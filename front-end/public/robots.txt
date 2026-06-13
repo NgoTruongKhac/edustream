@@ -1,0 +1,17 @@
+User-agent: *
+Allow: /
+
+# Chặn bot crawl toàn bộ các trang quản trị hệ thống
+Disallow: /admin
+
+# Chặn bot vào các khu vực cá nhân của tài khoản công khai
+Disallow: /edit-profile
+Disallow: /profile
+
+# Chặn các trang điều hướng xác thực của hệ thống (Tránh trùng lặp nội dung)
+Disallow: /oauth2/
+Disallow: /login
+Disallow: /register
+
+# Khai báo bản đồ website cho công cụ tìm kiếm
+Sitemap: https://edustream.click/sitemap.xml

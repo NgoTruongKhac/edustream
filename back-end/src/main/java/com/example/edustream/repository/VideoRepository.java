@@ -43,13 +43,14 @@ public interface VideoRepository extends JpaRepository<Video, Long> {
             "WHERE v.id = :id")
     Optional<Video> findByIdWithDetails(@Param("id") Long id);
 
-    @Query("SELECT v FROM Video v " +
+    @Query("SELECT DISTINCT v FROM Video v " +
+            "LEFT JOIN v.categories c " +
+            "LEFT JOIN v.hashtags h " +
             "WHERE v.id <> :currentVideoId " +
-            "AND v.videoStatus = com.example.edustream.entity.enums.VideoStatus.ACCEPTED " +
             "AND (" +
-            "   v.user.id = :authorId " + // Điều kiện 1: Cùng tác giả
-            "   OR EXISTS (SELECT 1 FROM v.categories c WHERE c.categoryName IN :categories) " + // Điều kiện 2: Cùng danh mục
-            "   OR EXISTS (SELECT 1 FROM v.hashtags h WHERE h.hashtagName IN :hashtags)" + // Điều kiện 3: Cùng hashtag
+            "   v.user.id = :authorId " +
+            "   OR c.categoryName IN :categories " +
+            "   OR h.hashtagName IN :hashtags" +
             ")")
     List<Video> findRelatedVideosRaw(
             @Param("currentVideoId") Long currentVideoId,
