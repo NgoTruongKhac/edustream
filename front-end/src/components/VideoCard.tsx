@@ -13,6 +13,7 @@ interface VideoCardProps {
   avatar: string;
   title: string;
   channel: string;
+  channelLink: string;
   view: number;
   createdAt: string;
   onBookmarkClick?: (videoId: number) => void;
@@ -40,6 +41,7 @@ export default function VideoCard({
   avatar,
   title,
   channel,
+  channelLink,
   view,
   createdAt,
   onBookmarkClick,
@@ -91,7 +93,7 @@ export default function VideoCard({
       <div className="flex gap-3 pr-2">
         {/* Avatar */}
         {/* 4. CHỈNH SỬA QUAN TRỌNG: Link Avatar trỏ về đúng trang Kênh (/@username hoặc /:username) */}
-        <Link to={`/@${channel}`} className="flex-shrink-0 mt-1">
+        <Link to={`/@${channelLink}`} className="flex-shrink-0 mt-1">
           <div className="avatar">
             <div className="w-10 h-10 rounded-full">
               <img
