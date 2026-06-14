@@ -5,6 +5,7 @@ import {
   AlignJustify,
   LogOut,
   Palette,
+  X,
 } from "lucide-react";
 import logo_full from "@/assets/logo/logo_full.png";
 import { useAuthStore } from "@/stores/useAuthStore";
@@ -14,6 +15,8 @@ import { useUnreadNotificationStore } from "@/stores/useUnReadNotificationStore"
 import NotificationsDropdown from "./NotificationsDropdown";
 import { useState, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import ModalLogin from "./ModalLogin";
+import ModalRegister from "./ModalRegister";
 
 interface NavbarProps {
   onOpenSidebar: () => void;
@@ -29,15 +32,16 @@ export default function Navbar({ onOpenSidebar }: NavbarProps) {
   const bellRef = useRef<HTMLButtonElement>(null);
 
   const [searchKeyword, setSearchKeyword] = useState("");
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const navigate = useNavigate();
 
   // 3. Hàm xử lý chuyển trang khi nhấn Enter hoặc submit tìm kiếm
   const handleSearchSubmit = () => {
     if (searchKeyword.trim()) {
-      // Đưa query parameters lên URL: keyword và mặc định page = 0
       navigate(
         `/search?keyword=${encodeURIComponent(searchKeyword.trim())}&page=0`,
       );
+      setMobileSearchOpen(false);
     }
   };
 
@@ -54,6 +58,11 @@ export default function Navbar({ onOpenSidebar }: NavbarProps) {
   const handleBellClick = () => {
     setNotifOpen((prev) => !prev);
     if (!notifOpen) reset();
+  };
+
+  const openLoginModal = () => {
+    const modal = document.getElementById("modal_login") as HTMLDialogElement;
+    if (modal) modal.showModal();
   };
 
   return (
@@ -82,8 +91,8 @@ export default function Navbar({ onOpenSidebar }: NavbarProps) {
       {/* CENTER */}
       <div className="navbar-center hidden lg:flex w-full max-w-md">
         <div className="relative w-full group">
-          <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
-            <Search className="w-5 h-5 text-neutral-400 group-focus-within:text-primary transition-colors" />
+          <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none z-10">
+            <Search className="w-4 h-4 text-base-content/40 group-focus-within:text-primary transition-colors" />
           </div>
           <input
             type="text"
@@ -91,21 +100,53 @@ export default function Navbar({ onOpenSidebar }: NavbarProps) {
             value={searchKeyword}
             onChange={(e) => setSearchKeyword(e.target.value)}
             onKeyDown={handleKeyDown}
-            className="input w-full pl-11 
-            bg-base-200 border-base-400 border 
-            text-base-content placeholder:text-base-content/50
-            focus:bg-base-100 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20
-            rounded-xl transition-all"
+            className="input w-full pl-10 pr-4 h-10
+        bg-base-200 border border-base-300
+        text-base-content placeholder:text-base-content/40
+        focus:bg-base-100 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20
+        rounded-xl transition-all text-sm"
           />
         </div>
       </div>
+      {/* MOBILE SEARCH OVERLAY */}
+      {mobileSearchOpen && (
+        <div className="absolute inset-0 z-50 flex items-center gap-2 px-3 bg-base-100 lg:hidden">
+          <div className="relative flex-1">
+            <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+              <Search className="w-4 h-4 text-primary" />
+            </div>
+            <input
+              type="text"
+              autoFocus
+              placeholder="Tìm kiếm nội dung..."
+              value={searchKeyword}
+              onChange={(e) => setSearchKeyword(e.target.value)}
+              onKeyDown={handleKeyDown}
+              className="input w-full pl-9 pr-4 h-10
+          bg-base-200 border border-primary
+          text-base-content placeholder:text-base-content/40
+          focus:outline-none focus:ring-2 focus:ring-primary/20
+          rounded-xl text-sm"
+            />
+          </div>
+          <button
+            onClick={() => {
+              setMobileSearchOpen(false);
+              setSearchKeyword("");
+            }}
+            className="btn btn-ghost btn-circle btn-sm text-base-content/60"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
 
       {/* RIGHT */}
       <div className="navbar-end flex items-center gap-1 sm:gap-2">
         {/* Mobile search */}
         <button
-          onClick={handleSearchSubmit}
-          className="btn btn-ghost btn-circle lg:hidden text-neutral-600 hover:text-primary hover:bg-primary/10"
+          onClick={() => setMobileSearchOpen(true)}
+          className="btn btn-ghost btn-circle lg:hidden text-base-content/60 hover:text-primary hover:bg-primary/10"
         >
           <Search className="w-5 h-5" />
         </button>
@@ -267,17 +308,29 @@ export default function Navbar({ onOpenSidebar }: NavbarProps) {
         ) : (
           <>
             <div className="hidden sm:flex items-center gap-2 ml-2">
-              <Link to={"/login"}>
-                <button className="btn btn-ghost text-base-content hover:text-primary hover:bg-primary/10 font-medium rounded-xl">
-                  Đăng nhập
-                </button>
-              </Link>
+              <button
+                className="btn btn-ghost text-base-content hover:text-primary hover:bg-primary/10 font-medium rounded-xl"
+                onClick={() =>
+                  (
+                    document.getElementById("modal_login") as HTMLDialogElement
+                  )?.showModal()
+                }
+              >
+                Đăng nhập
+              </button>
 
-              <Link to={"/register"}>
-                <button className="btn bg-primary text-primary-content border-none hover:bg-primary/90 shadow-sm font-medium rounded-xl">
-                  Đăng ký
-                </button>
-              </Link>
+              <button
+                className="btn bg-primary text-primary-content border-none hover:bg-primary/90 shadow-sm font-medium rounded-xl"
+                onClick={() =>
+                  (
+                    document.getElementById(
+                      "modal_register",
+                    ) as HTMLDialogElement
+                  )?.showModal()
+                }
+              >
+                Đăng ký
+              </button>
             </div>
 
             <div className="dropdown dropdown-end sm:hidden ml-1">
@@ -312,6 +365,12 @@ export default function Navbar({ onOpenSidebar }: NavbarProps) {
           </>
         )}
       </div>
+      <dialog id="modal_login" className="modal">
+        <ModalLogin />
+      </dialog>
+      <dialog id="modal_register" className="modal">
+        <ModalRegister />
+      </dialog>
     </div>
   );
 }

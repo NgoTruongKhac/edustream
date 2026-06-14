@@ -1,5 +1,6 @@
 package com.example.edustream.dto.response;
 
+import com.example.edustream.entity.enums.Role;
 import com.example.edustream.entity.enums.UserStatus;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -19,6 +20,7 @@ public class UserResponseDto {
 	private String avatar;
 	private String coverImage;
 	private String authProvider;
+	private Role role;
 	private String providerId;
 	private long subscribersCount;
 	private int strikeCount;
